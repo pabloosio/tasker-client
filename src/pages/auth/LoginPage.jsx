@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo.png';
+import './Auth.css';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: import.meta.env.DEV ? import.meta.env.VITE_DEV_EMAIL || '' : '',
+    password: import.meta.env.DEV ? import.meta.env.VITE_DEV_PASSWORD || '' : ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,26 +31,27 @@ const LoginPage = () => {
       await login(formData);
       navigate('/dashboard');
     } catch (err) {
-      setError(err. response?.data?.message || 'Error al iniciar sesión');
+      setError(err.response?.data?.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <Row className="w-100">
-        <Col md={6} lg={5} xl={4} className="mx-auto">
-          <Card className="shadow">
-            <Card.Body className="p-4">
-              <div className="text-center mb-4">
-                <h2>📝 Tasker</h2>
-                <p className="text-muted">Inicia sesión en tu cuenta</p>
+    <div className="auth-container">
+      <Row className="w-100 justify-content-center">
+        <Col xs={11} sm={8} md={6} lg={5} xl={4}>
+          <Card className="auth-card">
+            <Card.Body>
+              <div className="auth-header">
+                <img src={logo} alt="Palomea Tareas" className="auth-logo-img" />
+                <h2 className="auth-title">Palomea Tareas</h2>
+                <p className="auth-subtitle">Inicia sesión en tu cuenta</p>
               </div>
 
-              {error && <Alert variant="danger">{error}</Alert>}
+              {error && <Alert className="auth-alert">{error}</Alert>}
 
-              <Form onSubmit={handleSubmit}>
+              <Form onSubmit={handleSubmit} className="auth-form">
                 <Form.Group className="mb-3">
                   <Form.Label>Email</Form.Label>
                   <Form.Control
@@ -61,8 +64,8 @@ const LoginPage = () => {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form. Label>Contraseña</Form.Label>
+                <Form.Group className="mb-4">
+                  <Form.Label>Contraseña</Form.Label>
                   <Form.Control
                     type="password"
                     name="password"
@@ -74,26 +77,25 @@ const LoginPage = () => {
                 </Form.Group>
 
                 <Button
-                  variant="primary"
                   type="submit"
-                  className="w-100"
+                  className="w-100 btn-auth"
                   disabled={loading}
                 >
                   {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                 </Button>
               </Form>
 
-              <div className="text-center mt-3">
+              <div className="auth-footer">
                 <small>
-                  ¿No tienes cuenta? {' '}
-                  <Link to="/register">Regístrate aquí</Link>
+                  ¿No tienes cuenta?{' '}
+                  <Link to="/register" className="auth-link">Regístrate aquí</Link>
                 </small>
               </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
-    </Container>
+    </div>
   );
 };
 

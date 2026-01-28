@@ -1,51 +1,77 @@
-import { Navbar as BSNavbar, Container, Nav, NavDropdown } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Navbar as BSNavbar, Nav, NavDropdown } from 'react-bootstrap';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut, FiUser } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiHome, FiFolder } from 'react-icons/fi';
+import logo from '../../assets/logo.png';
+import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <BSNavbar bg="primary" variant="dark" expand="lg" className="mb-4">
-      <Container>
-        <BSNavbar.Brand as={Link} to="/">
-          📝 Tasker
-        </BSNavbar.Brand>
-        <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
-        <BSNavbar. Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav. Link as={Link} to="/dashboard">
-              Dashboard
-            </Nav.Link>
-            <Nav.Link as={Link} to="/tasks">
-              Tareas
-            </Nav.Link>
-            <Nav.Link as={Link} to="/categories">
-              Categorías
-            </Nav.Link>
-          </Nav>
-          <Nav>
-            <NavDropdown title={user?. name || 'Usuario'} id="user-dropdown" align="end">
-              <NavDropdown.Item as={Link} to="/profile">
-                <FiUser className="me-2" />
-                Mi Perfil
-              </NavDropdown.Item>
-              <NavDropdown. Divider />
-              <NavDropdown.Item onClick={handleLogout}>
-                <FiLogOut className="me-2" />
-                Cerrar Sesión
-              </NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
-        </BSNavbar.Collapse>
-      </Container>
+    <BSNavbar expand="lg" className="custom-navbar">
+      <BSNavbar.Brand as={Link} to="/" className="navbar-brand-custom">
+        <img src={logo} alt="Palomea Tareas" className="brand-logo" />
+        <span className="brand-text">Palomea Tareas</span>
+      </BSNavbar.Brand>
+
+      <BSNavbar.Toggle aria-controls="basic-navbar-nav" className="navbar-toggler-custom" />
+
+      <BSNavbar.Collapse id="basic-navbar-nav">
+        <Nav className="mx-auto nav-center">
+          <Nav.Link
+            as={Link}
+            to="/tasks"
+            className={`nav-link-custom ${isActive('/tasks') || isActive('/dashboard') ? 'active' : ''}`}
+          >
+            <FiHome className="nav-icon" />
+            <span> Mis Tareas</span>
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
+            to="/categories"
+            className={`nav-link-custom ${isActive('/categories') ? 'active' : ''}`}
+          >
+            <FiFolder className="nav-icon" />
+            <span> Categorías</span>
+          </Nav.Link>
+        </Nav>
+
+        <Nav className="nav-end">
+          <NavDropdown
+            title={
+              <div className="user-dropdown-toggle">
+                <div className="user-avatar">
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <span className="user-name d-none d-md-inline">{user?.name || 'Usuario'}</span>
+              </div>
+            }
+            id="user-dropdown"
+            align="end"
+            className="user-dropdown"
+          >
+            <NavDropdown.Item as={Link} to="/profile" className="dropdown-item-custom">
+              <FiUser className="me-2" />
+              Mi Perfil
+            </NavDropdown.Item>
+            <NavDropdown.Divider />
+            <NavDropdown.Item onClick={handleLogout} className="dropdown-item-custom dropdown-item-logout">
+              <FiLogOut className="me-2" />
+              Cerrar Sesión
+            </NavDropdown.Item>
+          </NavDropdown>
+        </Nav>
+      </BSNavbar.Collapse>
     </BSNavbar>
   );
 };

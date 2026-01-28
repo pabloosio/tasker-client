@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo.png';
+import './Auth.css';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: '',
-    email:  '',
+    email: '',
     password: '',
     confirmPassword: ''
   });
@@ -18,7 +20,7 @@ const RegisterPage = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e. target.value
+      [e.target.name]: e.target.value
     });
   };
 
@@ -26,7 +28,6 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
 
-    // Validar contraseñas
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
@@ -42,31 +43,32 @@ const RegisterPage = () => {
     try {
       await register({
         name: formData.name,
-        email: formData. email,
+        email: formData.email,
         password: formData.password
       });
       navigate('/dashboard');
     } catch (err) {
-      setError(err. response?.data?.message || 'Error al registrarse');
+      setError(err.response?.data?.message || 'Error al registrarse');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <Row className="w-100">
-        <Col md={6} lg={5} xl={4} className="mx-auto">
-          <Card className="shadow">
-            <Card.Body className="p-4">
-              <div className="text-center mb-4">
-                <h2>📝 Tasker</h2>
-                <p className="text-muted">Crea tu cuenta</p>
+    <div className="auth-container">
+      <Row className="w-100 justify-content-center">
+        <Col xs={11} sm={8} md={6} lg={5} xl={4}>
+          <Card className="auth-card">
+            <Card.Body>
+              <div className="auth-header">
+                <img src={logo} alt="Palomea Tareas" className="auth-logo-img" />
+                <h2 className="auth-title">Palomea Tareas</h2>
+                <p className="auth-subtitle">Crea tu cuenta</p>
               </div>
 
-              {error && <Alert variant="danger">{error}</Alert>}
+              {error && <Alert className="auth-alert">{error}</Alert>}
 
-              <Form onSubmit={handleSubmit}>
+              <Form onSubmit={handleSubmit} className="auth-form">
                 <Form.Group className="mb-3">
                   <Form.Label>Nombre</Form.Label>
                   <Form.Control
@@ -79,7 +81,7 @@ const RegisterPage = () => {
                   />
                 </Form.Group>
 
-                <Form. Group className="mb-3">
+                <Form.Group className="mb-3">
                   <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
@@ -92,7 +94,7 @@ const RegisterPage = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form. Label>Contraseña</Form.Label>
+                  <Form.Label>Contraseña</Form.Label>
                   <Form.Control
                     type="password"
                     name="password"
@@ -103,7 +105,7 @@ const RegisterPage = () => {
                   />
                 </Form.Group>
 
-                <Form. Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>Confirmar Contraseña</Form.Label>
                   <Form.Control
                     type="password"
@@ -116,26 +118,25 @@ const RegisterPage = () => {
                 </Form.Group>
 
                 <Button
-                  variant="primary"
                   type="submit"
-                  className="w-100"
+                  className="w-100 btn-auth"
                   disabled={loading}
                 >
-                  {loading ?  'Registrando...' : 'Registrarse'}
+                  {loading ? 'Registrando...' : 'Crear Cuenta'}
                 </Button>
               </Form>
 
-              <div className="text-center mt-3">
+              <div className="auth-footer">
                 <small>
                   ¿Ya tienes cuenta?{' '}
-                  <Link to="/login">Inicia sesión aquí</Link>
+                  <Link to="/login" className="auth-link">Inicia sesión aquí</Link>
                 </small>
               </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
-    </Container>
+    </div>
   );
 };
 

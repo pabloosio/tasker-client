@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
-import { FiCheckSquare, FiEdit2 } from 'react-icons/fi';
+import { FiCheckSquare, FiEdit2, FiClock, FiLoader, FiCheckCircle } from 'react-icons/fi';
 import taskService from '../../services/taskService';
 
 const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, categories = [] }) => {
@@ -24,9 +24,9 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
   ];
 
   const statuses = [
-    { value: 'pending', label: 'Pendiente' },
-    { value: 'in_progress', label: 'En Progreso' },
-    { value: 'completed', label: 'Completada' }
+    { value: 'pending', label: 'Pendiente', color: '#ffc107', icon: FiClock },
+    { value: 'in_progress', label: 'En Progreso', color: '#0dcaf0', icon: FiLoader },
+    { value: 'completed', label: 'Completada', color: '#198754', icon: FiCheckCircle }
   ];
 
   useEffect(() => {
@@ -140,7 +140,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
           </Form.Group>
 
           <Row>
-            <Col md={6}>
+            <Col md={12}>
               <Form.Group className="mb-3">
                 <Form.Label>Prioridad</Form.Label>
                 <div className="priority-selector">
@@ -164,24 +164,34 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
                 </div>
               </Form.Group>
             </Col>
-            <Col md={6}>
+           
+          </Row>
+          <Row>
+             <Col md={12}>
               <Form.Group className="mb-3">
                 <Form.Label>Estado</Form.Label>
-                <Form.Select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                >
-                  {statuses.map((status) => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-                </Form.Select>
+                <div className="status-selector">
+                  {statuses.map((status) => {
+                    const IconComponent = status.icon;
+                    return (
+                      <button
+                        key={status.value}
+                        type="button"
+                        className={`status-option ${formData.status === status.value ? 'selected' : ''}`}
+                        style={{
+                          '--status-color': status.color
+                        }}
+                        onClick={() => setFormData({ ...formData, status: status.value })}
+                      >
+                        <IconComponent size={14} style={{ color: status.color }} />
+                        {status.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </Form.Group>
             </Col>
           </Row>
-
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">

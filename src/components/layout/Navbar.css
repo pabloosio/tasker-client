@@ -1,0 +1,233 @@
+/* ========================================
+   Custom Navbar - Tema Lavanda
+   ======================================== */
+
+.custom-navbar {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  padding: 0.75rem 2rem;
+  box-shadow: 0 4px 20px rgba(155, 139, 180, 0.3);
+  width: 100%;
+}
+
+/* Brand */
+.navbar-brand-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: white !important;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-custom:hover .brand-logo {
+  transform: scale(1.05);
+}
+
+.brand-text {
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+/* Nav Links Center */
+.nav-center {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-link-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link-custom:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-link-custom.active {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link-custom.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: white;
+  border-radius: 3px 3px 0 0;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+}
+
+/* User Dropdown */
+.nav-end {
+  display: flex;
+  align-items: center;
+}
+
+.user-dropdown .dropdown-toggle {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.user-dropdown .dropdown-toggle::after {
+  display: none;
+}
+
+.user-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background: white;
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.user-name {
+  color: white;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Dropdown Menu */
+.user-dropdown .dropdown-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  min-width: 180px;
+}
+
+.dropdown-item-custom {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.dropdown-item-custom:hover {
+  background: var(--primary-pastel);
+  color: var(--primary-dark);
+}
+
+.dropdown-item-logout:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* Toggler for Mobile */
+.navbar-toggler-custom {
+  border: none;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px;
+}
+
+.navbar-toggler-custom:focus {
+  box-shadow: none;
+}
+
+.navbar-toggler-custom .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .custom-navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-collapse {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .nav-center {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .nav-link-custom {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .nav-link-custom.active::after {
+    display: none;
+  }
+
+  .nav-end {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .user-dropdown-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .user-name {
+    display: inline !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .brand-text {
+    font-size: 1.15rem;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+}

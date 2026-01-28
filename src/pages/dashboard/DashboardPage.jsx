@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Spinner, Alert, Button, Badge } from 'react-bootstrap';
-import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar } from 'react-icons/fi';
+import { Row, Col, Card, Spinner, Alert, Badge } from 'react-bootstrap';
+import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import TaskForm from '../../components/tasks/TaskForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -38,7 +38,7 @@ const DashboardPage = () => {
         categoryService.getCategories(),
         taskService.getTasks()
       ]);
-
+      console.log("statsResponse",statsResponse)
       setStats(statsResponse.data || statsResponse);
 
       // Asegurar que categories sea un array
@@ -210,7 +210,7 @@ const DashboardPage = () => {
   };
 
   const TaskCard = ({ task }) => (
-    <Card className="kanban-task-card mb-2">
+    <Card className="kanban-task-card mb-2" onClick={() => handleEditTask(task)} style={{ cursor: 'pointer' }}>
       <Card.Body className="p-3">
         <div className="d-flex justify-content-between align-items-start mb-2">
           <h6 className="mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
@@ -219,14 +219,20 @@ const DashboardPage = () => {
           <div className="d-flex gap-1">
             <button
               className="btn-icon btn-icon-edit btn-sm"
-              onClick={() => handleEditTask(task)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditTask(task);
+              }}
               title="Editar"
             >
               <FiEdit2 size={14} />
             </button>
             <button
               className="btn-icon btn-icon-delete btn-sm"
-              onClick={() => setTaskToDelete(task)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setTaskToDelete(task);
+              }}
               title="Eliminar"
             >
               <FiTrash2 size={14} />
@@ -269,29 +275,17 @@ const DashboardPage = () => {
     <Col lg={4} md={6} className="mb-4 mb-lg-0">
       <div className="kanban-column">
         <div className="kanban-column-header">
-          <div className="d-flex align-items-center gap-2 mb-3">
-            <Icon size={20} style={{ color }} />
-            <h6 className="mb-0">{title}</h6>
+          <div className="d-flex align-items-center gap-2 mb-2">
+            <Icon size={18} style={{ color }} />
+            <span className="kanban-column-title">{title}</span>
             <Badge bg="secondary" className="ms-auto">{columnTasks.length}</Badge>
           </div>
-          <Button
-            size="sm"
-            variant="outline-primary"
-            className="w-100 mb-3"
-            onClick={() => {
-              setTaskToEdit(null);
-              setShowTaskModal(true);
-            }}
-          >
-            <FiPlus size={14} className="me-1" />
-            Agregar tarea
-          </Button>
         </div>
 
         <div className="kanban-tasks">
           {columnTasks.length === 0 ? (
-            <div className="text-center py-4">
-              <p className="text-muted small">Sin tareas</p>
+            <div className="text-center py-3">
+              <p className="text-muted small mb-0">Sin tareas</p>
             </div>
           ) : (
             columnTasks.map(task => (
@@ -322,72 +316,58 @@ const DashboardPage = () => {
         </Alert>
       )}
 
-      {/* Stats Cards */}
-      <Row className="mb-4">
-        <Col md={4} className="mb-3">
-          <Card className="shadow-sm h-100">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="text-muted mb-2">Total de Tareas</h6>
-                  <h2 className="mb-0">{stats?.total || 0}</h2>
-                </div>
-                <div className="fs-1 text-primary">
-                  <FiCheckCircle />
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={4} className="mb-3">
-          <Card className="shadow-sm h-100">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="text-muted mb-2">Pendientes</h6>
-                  <h2 className="mb-0">{stats?.byStatus?.pending || 0}</h2>
-                </div>
-                <div className="fs-1 text-warning">
-                  <FiClock />
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={4} className="mb-3">
-          <Card className="shadow-sm h-100">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="text-muted mb-2">En Progreso</h6>
-                  <h2 className="mb-0">{stats?.byStatus?.in_progress || 0}</h2>
-                </div>
-                <div className="fs-1 text-info">
-                  <FiLoader />
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+      {/* Stats Bar con botón de agregar */}
+      <div className="stats-bar-container mb-4">
+        <div className="stats-cards">
+          <div className="stat-card-mini">
+            <FiList className="stat-card-icon" style={{ color: '#0d6efd' }} />
+            <div className="stat-info">
+              <span className="stat-card-number">{stats?.total || 0}</span>
+              <span className="stat-card-label">Total</span>
+            </div>
+          </div>
+          <div className="stat-card-mini">
+            <FiClock className="stat-card-icon" style={{ color: '#ffc107' }} />
+            <div className="stat-info">
+              <span className="stat-card-number">{stats?.byStatus?.pending || 0}</span>
+              <span className="stat-card-label">Pendientes</span>
+            </div>
+          </div>
+          <div className="stat-card-mini">
+            <FiLoader className="stat-card-icon" style={{ color: '#0dcaf0' }} />
+            <div className="stat-info">
+              <span className="stat-card-number">{stats?.byStatus?.in_progress || 0}</span>
+              <span className="stat-card-label">En Progreso</span>
+            </div>
+          </div>
+          <div className="stat-card-mini">
+            <FiCheckCircle className="stat-card-icon" style={{ color: '#198754' }} />
+            <div className="stat-info">
+              <span className="stat-card-number">{stats?.byStatus?.completed || 0}</span>
+              <span className="stat-card-label">Completadas</span>
+            </div>
+          </div>
+        </div>
+        <button
+          className="add-task-btn"
+          onClick={() => {
+            setTaskToEdit(null);
+            setShowTaskModal(true);
+          }}
+        >
+          <FiPlus size={18} />
+          <span className="add-task-text">Nueva</span>
+        </button>
+      </div>
 
       {/* Kanban Board */}
       {!Array.isArray(tasks) || tasks.length === 0 ? (
         <Row>
           <Col md={12}>
             <Card className="shadow-sm">
-              <Card.Body className="py-5">
+              <Card.Body className="py-4">
                 <div className="text-center">
-                  <h5 className="text-muted mb-3">No tienes tareas todavía</h5>
-                  <Button
-                    className="btn-add-category"
-                    onClick={() => setShowTaskModal(true)}
-                  >
-                    <FiPlus className="me-2" />
-                    Crear mi primera tarea
-                  </Button>
+                  <p className="text-muted mb-0">No tienes tareas todavía</p>
                 </div>
               </Card.Body>
             </Card>
