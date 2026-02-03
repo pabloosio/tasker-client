@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Row, Col, Card, Spinner, Alert, Badge } from 'react-bootstrap';
 import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
@@ -19,6 +19,25 @@ const DashboardPage = () => {
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [deletingTask, setDeletingTask] = useState(false);
+
+  // Kanban mobile slider
+  const [activeColumn, setActiveColumn] = useState(0);
+  const kanbanScrollRef = useRef(null);
+
+  const handleKanbanScroll = useCallback(() => {
+    const el = kanbanScrollRef.current;
+    if (!el) return;
+    const scrollLeft = el.scrollLeft;
+    const columnWidth = el.firstElementChild?.offsetWidth || 1;
+    const index = Math.round(scrollLeft / columnWidth);
+    setActiveColumn(Math.min(index, 2));
+  }, []);
+
+  const scrollToColumn = useCallback((index) => {
+    const el = kanbanScrollRef.current;
+    if (!el || !el.children[index]) return;
+    el.children[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -151,7 +170,7 @@ const DashboardPage = () => {
   const handleToggleTaskStatus = async (task) => {
     const newStatus = task.status === 'completed' ? 'pending' : 'completed';
     try {
-      const response = await taskService.updateTaskStatus(task.id, newStatus);
+      const response = await taskService.updateTaskStatus(task.id, newStatus.toUpperCase());
       const updatedTaskData = normalizeTask(response.data || response);
       setTasks(prev => (Array.isArray(prev) ? prev : []).map(t => t.id === task.id ? updatedTaskData : t));
       // Actualizar stats
@@ -374,29 +393,41 @@ const DashboardPage = () => {
           </Col>
         </Row>
       ) : (
-        <Row>
-          <KanbanColumn
-            status="pending"
-            title="Pendiente"
-            icon={FiClock}
-            color="#ffc107"
-            tasks={tasksByStatus.pending}
-          />
-          <KanbanColumn
-            status="in_progress"
-            title="En Progreso"
-            icon={FiLoader}
-            color="#0dcaf0"
-            tasks={tasksByStatus.in_progress}
-          />
-          <KanbanColumn
-            status="completed"
-            title="Completada"
-            icon={FiCheckCircle}
-            color="#198754"
-            tasks={tasksByStatus.completed}
-          />
-        </Row>
+        <div className="kanban-board">
+          <Row ref={kanbanScrollRef} onScroll={handleKanbanScroll}>
+            <KanbanColumn
+              status="pending"
+              title="Pendiente"
+              icon={FiClock}
+              color="#ffc107"
+              tasks={tasksByStatus.pending}
+            />
+            <KanbanColumn
+              status="in_progress"
+              title="En Progreso"
+              icon={FiLoader}
+              color="#0dcaf0"
+              tasks={tasksByStatus.in_progress}
+            />
+            <KanbanColumn
+              status="completed"
+              title="Completada"
+              icon={FiCheckCircle}
+              color="#198754"
+              tasks={tasksByStatus.completed}
+            />
+          </Row>
+          <div className="kanban-dots">
+            {['Pendiente', 'En Progreso', 'Completada'].map((label, i) => (
+              <button
+                key={label}
+                className={`kanban-dot ${activeColumn === i ? 'active' : ''}`}
+                onClick={() => scrollToColumn(i)}
+                aria-label={label}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Modals */}

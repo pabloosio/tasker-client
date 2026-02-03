@@ -66,6 +66,8 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
 
     const dataToSend = {
       ...formData,
+      status: formData.status.toUpperCase(),
+      priority: formData.priority.toUpperCase(),
       categoryId: formData.categoryId || null,
       dueDate: formData.dueDate || null
     };
