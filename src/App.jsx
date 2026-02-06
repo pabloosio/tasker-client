@@ -7,6 +7,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import CategoriesPage from './pages/categories/CategoriesPage';
+import ExportPage from './pages/export/ExportPage';
 
 // Styles
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -35,6 +36,14 @@ function App() {
             element={
               <PrivateRoute>
                 <CategoriesPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/export"
+            element={
+              <PrivateRoute>
+                <ExportPage />
               </PrivateRoute>
             }
           />

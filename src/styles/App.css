@@ -1,14 +1,14 @@
 /* Estilos globales */
 :root {
-  /* Paleta Lavanda - Más sólido */
-  --primary: #8B7AAF;
-  --primary-dark: #6B5A8F;
-  --primary-light: #A99AC5;
-  --primary-pastel: #E5E0F0;
+  /* Paleta Azul Pastel - Suave y calmado */
+  --primary: #6B9FD4;
+  --primary-dark: #5088C5;
+  --primary-light: #8BB8E8;
+  --primary-pastel: #E8F1FA;
 
   /* Colores de acento */
-  --accent: #A8D4E6;
-  --accent-dark: #7BBDD4;
+  --accent: #7EC8D9;
+  --accent-dark: #5BB5C9;
 
   /* Estados */
   --success: #7BC89C;
@@ -18,16 +18,16 @@
   --info: #8BC5D6;
 
   /* Grises suaves */
-  --gray-100: #F9F8FB;
-  --gray-200: #EEEDF2;
-  --gray-300: #E0DEE6;
-  --gray-500: #A9A6B2;
-  --gray-600: #7A7785;
-  --gray-700: #5A5766;
-  --gray-800: #3A3845;
+  --gray-100: #F8FAFC;
+  --gray-200: #EEF2F6;
+  --gray-300: #DCE3EA;
+  --gray-500: #8994A2;
+  --gray-600: #6B7685;
+  --gray-700: #4A5462;
+  --gray-800: #2D3540;
 
   /* Fondo */
-  --bg-gradient: linear-gradient(135deg, #F5F3F9 0%, #EEEDF2 100%);
+  --bg-gradient: linear-gradient(135deg, #F5F8FB 0%, #EEF2F6 100%);
 }
 
 body {
@@ -773,6 +773,25 @@ main {
   padding: 0.25rem 0.5rem;
 }
 
+/* Drag & Drop styles */
+.kanban-task-card.dragging {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: rotate(3deg);
+  opacity: 0.9;
+}
+
+.kanban-tasks.dragging-over {
+  background: var(--primary-pastel);
+  border-radius: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+.task-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 @media (max-width: 992px) {
   .kanban-tasks {
     max-height: calc(100vh - 500px);
@@ -866,4 +885,42 @@ main {
   .kanban-dots {
     display: none;
   }
+}
+
+/* ========================================
+   Export Page
+   ======================================== */
+.export-page .page-header h4 {
+  display: flex;
+  align-items: center;
+  color: var(--gray-800);
+}
+
+.export-card {
+  border: 1px solid var(--gray-200);
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+}
+
+.export-card:hover {
+  border-color: var(--gray-300);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.export-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-btn {
+  padding: 0.625rem 1.5rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }

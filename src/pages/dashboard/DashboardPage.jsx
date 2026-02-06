@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Row, Col, Card, Spinner, Alert, Badge } from 'react-bootstrap';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import TaskForm from '../../components/tasks/TaskForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import taskService from '../../services/taskService';
 import categoryService from '../../services/categoryService';
+import { humanizeDate, formatDate } from '../../utils/dateUtils';
 
 const DashboardPage = () => {
   const [stats, setStats] = useState(null);
@@ -57,14 +59,11 @@ const DashboardPage = () => {
         categoryService.getCategories(),
         taskService.getTasks()
       ]);
-      console.log("statsResponse",statsResponse)
       setStats(statsResponse.data || statsResponse);
 
-      // Asegurar que categories sea un array
       const categoriesData = categoriesResponse.data || categoriesResponse;
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
-      // Asegurar que tasks sea un array - puede venir en tasksResponse.data.tasks
       let tasksData = [];
       if (tasksResponse.data) {
         if (Array.isArray(tasksResponse.data)) {
@@ -73,7 +72,6 @@ const DashboardPage = () => {
           tasksData = tasksResponse.data.tasks;
         }
       }
-      // Normalizar tasks
       const normalizedTasks = tasksData.map(normalizeTask);
       setTasks(normalizedTasks);
     } catch (err) {
@@ -83,29 +81,11 @@ const DashboardPage = () => {
     }
   };
 
-  // Category handlers
-  const handleCategoryCreated = (newCategory) => {
-    const categoryData = newCategory.data || newCategory;
-    setCategories(prev => [...(Array.isArray(prev) ? prev : []), categoryData]);
-  };
-
-  const handleCategoryUpdated = (updatedCategory) => {
-    const categoryData = updatedCategory.data || updatedCategory;
-    setCategories(prev => (Array.isArray(prev) ? prev : []).map(cat =>
-      cat.id === categoryData.id ? categoryData : cat
-    ));
-  };
-
-  const handleDeleteCategory = async () => {
-    // Si es necesario eliminar categoría desde el tablero, implementar aquí
-  };
-
   // Task handlers
   const handleTaskCreated = (newTask) => {
     const taskData = normalizeTask(newTask.data || newTask);
     setTasks(prev => [taskData, ...(Array.isArray(prev) ? prev : [])]);
     setShowTaskModal(false);
-    // Actualizar stats
     setStats(prev => ({
       ...prev,
       total: (prev?.total || 0) + 1,
@@ -141,7 +121,6 @@ const DashboardPage = () => {
     try {
       await taskService.deleteTask(taskToDelete.id);
       setTasks(prev => (Array.isArray(prev) ? prev : []).filter(task => task.id !== taskToDelete.id));
-      // Actualizar stats
       setStats(prev => ({
         ...prev,
         total: Math.max((prev?.total || 1) - 1, 0),
@@ -167,58 +146,54 @@ const DashboardPage = () => {
     setTaskToEdit(null);
   };
 
-  const handleToggleTaskStatus = async (task) => {
-    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+  // Drag & Drop handler
+  const handleDragEnd = async (result) => {
+    const { destination, source, draggableId } = result;
+
+    // Si no hay destino o es la misma posición, no hacer nada
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    const newStatus = destination.droppableId;
+    const oldStatus = source.droppableId;
+    const taskId = draggableId;
+
+    // Encontrar la tarea
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Actualizar optimistamente el estado local
+    const updatedTask = { ...task, status: newStatus };
+    setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+
+    // Actualizar stats optimistamente
+    setStats(prev => ({
+      ...prev,
+      byStatus: {
+        ...prev?.byStatus,
+        [oldStatus]: Math.max((prev?.byStatus?.[oldStatus] || 1) - 1, 0),
+        [newStatus]: (prev?.byStatus?.[newStatus] || 0) + 1
+      }
+    }));
+
+    // Llamar al API
     try {
-      const response = await taskService.updateTaskStatus(task.id, newStatus.toUpperCase());
-      const updatedTaskData = normalizeTask(response.data || response);
-      setTasks(prev => (Array.isArray(prev) ? prev : []).map(t => t.id === task.id ? updatedTaskData : t));
-      // Actualizar stats
+      const response = await taskService.updateTaskStatus(taskId, newStatus.toUpperCase());
+      const serverTask = normalizeTask(response.data || response);
+      setTasks(prev => prev.map(t => t.id === taskId ? serverTask : t));
+    } catch (err) {
+      // Revertir si falla
+      setTasks(prev => prev.map(t => t.id === taskId ? task : t));
       setStats(prev => ({
         ...prev,
         byStatus: {
           ...prev?.byStatus,
-          [task.status]: Math.max((prev?.byStatus?.[task.status] || 1) - 1, 0),
-          [newStatus]: (prev?.byStatus?.[newStatus] || 0) + 1
+          [oldStatus]: (prev?.byStatus?.[oldStatus] || 0) + 1,
+          [newStatus]: Math.max((prev?.byStatus?.[newStatus] || 1) - 1, 0)
         }
       }));
-    } catch (err) {
       setError(err.response?.data?.message || 'Error al actualizar el estado');
     }
-  };
-
-  const getPriorityBadge = (priority) => {
-    const variants = {
-      low: 'success',
-      medium: 'warning',
-      high: 'danger'
-    };
-    const labels = {
-      low: 'Baja',
-      medium: 'Media',
-      high: 'Alta'
-    };
-    return <Badge bg={variants[priority]}>{labels[priority]}</Badge>;
-  };
-
-  const getStatusBadge = (status) => {
-    const variants = {
-      pending: 'secondary',
-      in_progress: 'info',
-      completed: 'success'
-    };
-    const labels = {
-      pending: 'Pendiente',
-      in_progress: 'En Progreso',
-      completed: 'Completada'
-    };
-    return <Badge bg={variants[status]}>{labels[status]}</Badge>;
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   };
 
   // Agrupar tareas por estado
@@ -228,66 +203,93 @@ const DashboardPage = () => {
     completed: (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'completed')
   };
 
-  const TaskCard = ({ task }) => (
-    <Card className="kanban-task-card mb-2" onClick={() => handleEditTask(task)} style={{ cursor: 'pointer' }}>
-      <Card.Body className="p-3">
-        <div className="d-flex justify-content-between align-items-start mb-2">
-          <h6 className="mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
-            {task.title}
-          </h6>
-          <div className="d-flex gap-1">
-            <button
-              className="btn-icon btn-icon-edit btn-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditTask(task);
-              }}
-              title="Editar"
-            >
-              <FiEdit2 size={14} />
-            </button>
-            <button
-              className="btn-icon btn-icon-delete btn-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setTaskToDelete(task);
-              }}
-              title="Eliminar"
-            >
-              <FiTrash2 size={14} />
-            </button>
-          </div>
-        </div>
+  const TaskCard = ({ task, index }) => (
+    <Draggable draggableId={task.id} index={index}>
+      {(provided, snapshot) => (
+        <Card
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          className={`kanban-task-card mb-2 ${snapshot.isDragging ? 'dragging' : ''}`}
+          onClick={() => handleEditTask(task)}
+          style={{
+            ...provided.draggableProps.style,
+            cursor: 'grab'
+          }}
+        >
+          <Card.Body className="p-3">
+            <div className="d-flex justify-content-between align-items-start mb-2">
+              <h6 className="mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
+                {task.title}
+              </h6>
+              <div className="d-flex gap-1">
+                <button
+                  className="btn-icon btn-icon-edit btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditTask(task);
+                  }}
+                  title="Editar"
+                >
+                  <FiEdit2 size={14} />
+                </button>
+                <button
+                  className="btn-icon btn-icon-delete btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTaskToDelete(task);
+                  }}
+                  title="Eliminar"
+                >
+                  <FiTrash2 size={14} />
+                </button>
+              </div>
+            </div>
 
-        {task.description && (
-          <p className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
-            {task.description}
-          </p>
-        )}
+            {task.description && (
+              <p className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
+                {task.description}
+              </p>
+            )}
 
-        <div className="d-flex gap-2 flex-wrap mb-2">
-          <Badge bg={task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'success'} style={{ fontSize: '0.7rem' }}>
-            {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
-          </Badge>
-          {task.category && (
-            <span className="task-category-badge" style={{ borderColor: task.category.color || '#3B82F6', fontSize: '0.75rem' }}>
-              <span
-                className="category-dot"
-                style={{ backgroundColor: task.category.color || '#3B82F6', width: '6px', height: '6px' }}
-              />
-              {task.category.name}
-            </span>
-          )}
-        </div>
+            <div className="d-flex gap-2 flex-wrap mb-2">
+              <Badge bg={task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'success'} style={{ fontSize: '0.7rem' }}>
+                {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
+              </Badge>
+              {task.category && (
+                <span className="task-category-badge" style={{ borderColor: task.category.color || '#3B82F6', fontSize: '0.75rem' }}>
+                  <span
+                    className="category-dot"
+                    style={{ backgroundColor: task.category.color || '#3B82F6', width: '6px', height: '6px' }}
+                  />
+                  {task.category.name}
+                </span>
+              )}
+            </div>
 
-        {task.dueDate && (
-          <div className="text-muted" style={{ fontSize: '0.8rem' }}>
-            <FiCalendar size={12} className="me-1" style={{ display: 'inline' }} />
-            {formatDate(task.dueDate)}
-          </div>
-        )}
-      </Card.Body>
-    </Card>
+            <div className="task-dates">
+              {task.dueDate && (
+                <div className="text-muted" style={{ fontSize: '0.8rem' }}>
+                  <FiCalendar size={12} className="me-1" style={{ display: 'inline' }} />
+                  {formatDate(task.dueDate)}
+                </div>
+              )}
+              {task.status === 'completed' && task.completedAt && (
+                <div className="text-success" style={{ fontSize: '0.75rem' }}>
+                  <FiCheckCircle size={11} className="me-1" style={{ display: 'inline' }} />
+                  {humanizeDate(task.completedAt)}
+                </div>
+              )}
+              {task.statusUpdatedAt && task.status !== 'completed' && (
+                <div className="text-muted" style={{ fontSize: '0.7rem', opacity: 0.7 }}>
+                  Movida {humanizeDate(task.statusUpdatedAt)}
+                </div>
+              )}
+            </div>
+          </Card.Body>
+        </Card>
+      )}
+    </Draggable>
   );
 
   const KanbanColumn = ({ status, title, icon: Icon, color, tasks: columnTasks }) => (
@@ -301,17 +303,26 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="kanban-tasks">
-          {columnTasks.length === 0 ? (
-            <div className="text-center py-3">
-              <p className="text-muted small mb-0">Sin tareas</p>
+        <Droppable droppableId={status}>
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className={`kanban-tasks ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
+            >
+              {columnTasks.length === 0 ? (
+                <div className="text-center py-3">
+                  <p className="text-muted small mb-0">Sin tareas</p>
+                </div>
+              ) : (
+                columnTasks.map((task, index) => (
+                  <TaskCard key={task.id} task={task} index={index} />
+                ))
+              )}
+              {provided.placeholder}
             </div>
-          ) : (
-            columnTasks.map(task => (
-              <TaskCard key={task.id} task={task} />
-            ))
           )}
-        </div>
+        </Droppable>
       </div>
     </Col>
   );
@@ -379,7 +390,7 @@ const DashboardPage = () => {
         </button>
       </div>
 
-      {/* Kanban Board */}
+      {/* Kanban Board con Drag & Drop */}
       {!Array.isArray(tasks) || tasks.length === 0 ? (
         <Row>
           <Col md={12}>
@@ -393,41 +404,43 @@ const DashboardPage = () => {
           </Col>
         </Row>
       ) : (
-        <div className="kanban-board">
-          <Row ref={kanbanScrollRef} onScroll={handleKanbanScroll}>
-            <KanbanColumn
-              status="pending"
-              title="Pendiente"
-              icon={FiClock}
-              color="#ffc107"
-              tasks={tasksByStatus.pending}
-            />
-            <KanbanColumn
-              status="in_progress"
-              title="En Progreso"
-              icon={FiLoader}
-              color="#0dcaf0"
-              tasks={tasksByStatus.in_progress}
-            />
-            <KanbanColumn
-              status="completed"
-              title="Completada"
-              icon={FiCheckCircle}
-              color="#198754"
-              tasks={tasksByStatus.completed}
-            />
-          </Row>
-          <div className="kanban-dots">
-            {['Pendiente', 'En Progreso', 'Completada'].map((label, i) => (
-              <button
-                key={label}
-                className={`kanban-dot ${activeColumn === i ? 'active' : ''}`}
-                onClick={() => scrollToColumn(i)}
-                aria-label={label}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="kanban-board">
+            <Row ref={kanbanScrollRef} onScroll={handleKanbanScroll}>
+              <KanbanColumn
+                status="pending"
+                title="Pendiente"
+                icon={FiClock}
+                color="#ffc107"
+                tasks={tasksByStatus.pending}
               />
-            ))}
+              <KanbanColumn
+                status="in_progress"
+                title="En Progreso"
+                icon={FiLoader}
+                color="#0dcaf0"
+                tasks={tasksByStatus.in_progress}
+              />
+              <KanbanColumn
+                status="completed"
+                title="Completada"
+                icon={FiCheckCircle}
+                color="#198754"
+                tasks={tasksByStatus.completed}
+              />
+            </Row>
+            <div className="kanban-dots">
+              {['Pendiente', 'En Progreso', 'Completada'].map((label, i) => (
+                <button
+                  key={label}
+                  className={`kanban-dot ${activeColumn === i ? 'active' : ''}`}
+                  onClick={() => scrollToColumn(i)}
+                  aria-label={label}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        </DragDropContext>
       )}
 
       {/* Modals */}
