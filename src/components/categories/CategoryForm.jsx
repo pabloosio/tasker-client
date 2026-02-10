@@ -3,7 +3,7 @@ import { Modal, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { FiFolder, FiEdit2 } from 'react-icons/fi';
 import categoryService from '../../services/categoryService';
 
-const CategoryForm = ({ show, onHide, onCategoryCreated, onCategoryUpdated, categoryToEdit }) => {
+const CategoryForm = ({ show, onHide, onCategoryCreated, onCategoryUpdated, categoryToEdit, workspaceId }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -61,7 +61,9 @@ const CategoryForm = ({ show, onHide, onCategoryCreated, onCategoryUpdated, cate
         const response = await categoryService.updateCategory(categoryToEdit.id, formData);
         onCategoryUpdated(response.data);
       } else {
-        const response = await categoryService.createCategory(formData);
+        const dataToSend = { ...formData };
+        if (workspaceId) dataToSend.workspaceId = workspaceId;
+        const response = await categoryService.createCategory(dataToSend);
         onCategoryCreated(response.data);
       }
       handleClose();

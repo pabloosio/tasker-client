@@ -231,3 +231,196 @@
     font-size: 1.1rem;
   }
 }
+
+/* ========================================
+   Workspace Switcher
+   ======================================== */
+
+.ws-switcher-dropdown .dropdown-toggle {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.ws-switcher-dropdown .dropdown-toggle::after {
+  display: none;
+}
+
+.ws-switcher-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem 0.5rem 0.6rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  min-width: 160px;
+}
+
+.ws-switcher-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ws-switcher-icon {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+.ws-switcher-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.ws-switcher-chevron {
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ws-switcher-dropdown.show .ws-switcher-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.ws-switcher-dropdown .dropdown-menu {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  padding: 0.5rem;
+  margin-top: 0.6rem;
+  min-width: 270px;
+  animation: wsSlideDown 0.15s ease;
+}
+
+@keyframes wsSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ws-switcher-header {
+  padding: 0.5rem 0.85rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-500, #9ca3af);
+}
+
+/* Workspace items */
+.ws-switcher-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  padding: 0.55rem 0.85rem !important;
+  border-radius: 9px !important;
+  color: var(--gray-700, #374151) !important;
+  font-size: 0.9rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.ws-switcher-item:hover {
+  background: var(--primary-pastel, #ede9fe) !important;
+  color: var(--primary-dark, #5b21b6) !important;
+}
+
+.ws-switcher-item.ws-active {
+  background: var(--primary-pastel, #ede9fe) !important;
+  color: var(--primary-dark, #5b21b6) !important;
+  font-weight: 600;
+}
+
+.ws-item-icon {
+  width: 30px;
+  height: 30px;
+  background: var(--primary-pastel, #ede9fe);
+  color: var(--primary, #7c3aed);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ws-switcher-item.ws-active .ws-item-icon {
+  background: var(--primary, #7c3aed);
+  color: white;
+}
+
+.ws-item-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ws-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-item-badge {
+  font-size: 0.62rem !important;
+  padding: 0.15rem 0.4rem !important;
+  border-radius: 4px !important;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ws-item-check {
+  color: var(--primary, #7c3aed);
+  flex-shrink: 0;
+}
+
+/* Manage link */
+.ws-switcher-manage {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0.55rem 0.85rem !important;
+  border-radius: 9px !important;
+  color: var(--gray-500, #9ca3af) !important;
+  font-size: 0.85rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.ws-switcher-manage:hover {
+  background: var(--gray-100, #f3f4f6) !important;
+  color: var(--gray-700, #374151) !important;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .ws-switcher-toggle {
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .ws-switcher-name {
+    max-width: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .ws-switcher-name {
+    max-width: 100px;
+  }
+}

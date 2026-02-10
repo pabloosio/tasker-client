@@ -2,8 +2,8 @@ import api from './api';
 
 const categoryService = {
   // Obtener todas las categorías
-  getCategories: async () => {
-    const response = await api.get('/categories');
+  getCategories: async (params = {}) => {
+    const response = await api.get('/categories', { params });
     return response.data;
   },
 

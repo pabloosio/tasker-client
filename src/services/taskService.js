@@ -38,9 +38,9 @@ const taskService = {
   },
 
   // Obtener estadísticas
-  getStats: async () => {
-    const response = await api.get('/tasks/stats');
-    return response. data;
+  getStats: async (params = {}) => {
+    const response = await api.get('/tasks/stats', { params });
+    return response.data;
   }
 };
 

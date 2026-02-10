@@ -7,12 +7,16 @@ import TaskForm from '../../components/tasks/TaskForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import taskService from '../../services/taskService';
 import categoryService from '../../services/categoryService';
+import workspaceService from '../../services/workspaceService';
+import { useWorkspace } from '../../context/WorkspaceContext';
 import { humanizeDate, formatDate } from '../../utils/dateUtils';
 
 const DashboardPage = () => {
+  const { currentWorkspace } = useWorkspace();
   const [stats, setStats] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -21,6 +25,9 @@ const DashboardPage = () => {
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [deletingTask, setDeletingTask] = useState(false);
+
+  // Completadas visibles
+  const [completedLimit, setCompletedLimit] = useState(10);
 
   // Kanban mobile slider
   const [activeColumn, setActiveColumn] = useState(0);
@@ -42,8 +49,10 @@ const DashboardPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (currentWorkspace) {
+      fetchData();
+    }
+  }, [currentWorkspace?.id]);
 
   // Normalizar status y priority a minúsculas
   const normalizeTask = (task) => ({
@@ -53,16 +62,35 @@ const DashboardPage = () => {
   });
 
   const fetchData = async () => {
+    if (!currentWorkspace) return;
+    setLoading(true);
+    const wsParams = { workspaceId: currentWorkspace.id };
+
     try {
-      const [statsResponse, categoriesResponse, tasksResponse] = await Promise.all([
-        taskService.getStats(),
-        categoryService.getCategories(),
-        taskService.getTasks()
-      ]);
+      const promises = [
+        taskService.getStats(wsParams),
+        categoryService.getCategories(wsParams),
+        taskService.getTasks({ limit: 100, ...wsParams })
+      ];
+
+      // Si no es personal, traer miembros del workspace
+      if (!currentWorkspace.isPersonal) {
+        promises.push(workspaceService.getMembers(currentWorkspace.id));
+      }
+
+      const [statsResponse, categoriesResponse, tasksResponse, membersResponse] = await Promise.all(promises);
+
       setStats(statsResponse.data || statsResponse);
 
       const categoriesData = categoriesResponse.data || categoriesResponse;
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+
+      if (membersResponse) {
+        const membersData = membersResponse.data || membersResponse;
+        setMembers(Array.isArray(membersData) ? membersData : []);
+      } else {
+        setMembers([]);
+      }
 
       let tasksData = [];
       if (tasksResponse.data) {
@@ -150,9 +178,10 @@ const DashboardPage = () => {
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
-    // Si no hay destino o es la misma posición, no hacer nada
+    // Si no hay destino, es la misma posición, o el destino no es "completed"
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+    if (destination.droppableId !== 'completed') return;
 
     const newStatus = destination.droppableId;
     const oldStatus = source.droppableId;
@@ -197,10 +226,11 @@ const DashboardPage = () => {
   };
 
   // Agrupar tareas por estado
+  const allCompleted = (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'completed');
   const tasksByStatus = {
     pending: (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'pending'),
     in_progress: (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'in_progress'),
-    completed: (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'completed')
+    completed: allCompleted.slice(0, completedLimit)
   };
 
   const TaskCard = ({ task, index }) => (
@@ -267,6 +297,18 @@ const DashboardPage = () => {
               )}
             </div>
 
+            {task.assignee && (
+              <div className="d-flex align-items-center gap-1 mb-2">
+                <span
+                  className="d-inline-flex align-items-center justify-content-center rounded-circle text-white"
+                  style={{ width: 20, height: 20, fontSize: '0.65rem', backgroundColor: 'var(--primary)' }}
+                >
+                  {task.assignee.name?.charAt(0)?.toUpperCase()}
+                </span>
+                <span className="text-muted" style={{ fontSize: '0.75rem' }}>{task.assignee.name}</span>
+              </div>
+            )}
+
             <div className="task-dates">
               {task.dueDate && (
                 <div className="text-muted" style={{ fontSize: '0.8rem' }}>
@@ -292,7 +334,7 @@ const DashboardPage = () => {
     </Draggable>
   );
 
-  const KanbanColumn = ({ status, title, icon: Icon, color, tasks: columnTasks }) => (
+  const KanbanColumn = ({ status, title, icon: Icon, color, tasks: columnTasks, footer }) => (
     <Col lg={4} md={6} className="mb-4 mb-lg-0">
       <div className="kanban-column">
         <div className="kanban-column-header">
@@ -323,6 +365,7 @@ const DashboardPage = () => {
             </div>
           )}
         </Droppable>
+        {footer}
       </div>
     </Col>
   );
@@ -427,6 +470,34 @@ const DashboardPage = () => {
                 icon={FiCheckCircle}
                 color="#198754"
                 tasks={tasksByStatus.completed}
+                footer={allCompleted.length > completedLimit ? (
+                  <div className="text-center py-2">
+                    <div className="d-flex gap-2 justify-content-center flex-wrap">
+                      {[20, 30, 40, 100].filter(n => n > completedLimit && n <= allCompleted.length).slice(0, 2).map(n => (
+                        <button
+                          key={n}
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => setCompletedLimit(n)}
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          Ver {n}
+                        </button>
+                      ))}
+                      {completedLimit < allCompleted.length && (
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => setCompletedLimit(allCompleted.length)}
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          Todas ({allCompleted.length})
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-muted mb-0 mt-1" style={{ fontSize: '0.7rem' }}>
+                      Mostrando {tasksByStatus.completed.length} de {allCompleted.length}
+                    </p>
+                  </div>
+                ) : null}
               />
             </Row>
             <div className="kanban-dots">
@@ -451,6 +522,8 @@ const DashboardPage = () => {
         onTaskUpdated={handleTaskUpdated}
         taskToEdit={taskToEdit}
         categories={categories}
+        workspaceId={currentWorkspace?.id}
+        workspaceMembers={members}
       />
 
       <ConfirmModal

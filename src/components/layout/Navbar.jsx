@@ -1,7 +1,8 @@
 import { Navbar as BSNavbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut, FiUser, FiHome, FiFolder, FiDownload } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiHome, FiFolder, FiDownload, FiBriefcase } from 'react-icons/fi';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
@@ -21,20 +22,28 @@ const Navbar = () => {
     <BSNavbar expand="lg" className="custom-navbar">
       <BSNavbar.Brand as={Link} to="/" className="navbar-brand-custom">
         <img src={logo} alt="Palomea Tareas" className="brand-logo" />
-        <span className="brand-text">Palomea Tareas</span>
+        <span className="brand-text d-none d-xl-inline">Palomea Tareas</span>
       </BSNavbar.Brand>
+
+      <div className="d-none d-lg-flex ms-3">
+        <WorkspaceSwitcher />
+      </div>
 
       <BSNavbar.Toggle aria-controls="basic-navbar-nav" className="navbar-toggler-custom" />
 
       <BSNavbar.Collapse id="basic-navbar-nav">
+        <div className="d-lg-none mt-3 mb-2">
+          <WorkspaceSwitcher />
+        </div>
+
         <Nav className="mx-auto nav-center">
           <Nav.Link
             as={Link}
-            to="/tasks"
+            to="/dashboard"
             className={`nav-link-custom ${isActive('/tasks') || isActive('/dashboard') ? 'active' : ''}`}
           >
             <FiHome className="nav-icon" />
-            <span> Mis Tareas</span>
+            <span> Tareas</span>
           </Nav.Link>
           <Nav.Link
             as={Link}
@@ -43,6 +52,14 @@ const Navbar = () => {
           >
             <FiFolder className="nav-icon" />
             <span> Categorías</span>
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
+            to="/workspaces"
+            className={`nav-link-custom ${isActive('/workspaces') ? 'active' : ''}`}
+          >
+            <FiBriefcase className="nav-icon" />
+            <span> Tableros</span>
           </Nav.Link>
           <Nav.Link
             as={Link}

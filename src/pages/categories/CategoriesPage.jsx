@@ -5,8 +5,10 @@ import MainLayout from '../../components/layout/MainLayout';
 import CategoryForm from '../../components/categories/CategoryForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import categoryService from '../../services/categoryService';
+import { useWorkspace } from '../../context/WorkspaceContext';
 
 const CategoriesPage = () => {
+  const { currentWorkspace } = useWorkspace();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,11 +19,12 @@ const CategoriesPage = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [currentWorkspace?.id]);
 
   const fetchCategories = async () => {
     try {
-      const response = await categoryService.getCategories();
+      const params = currentWorkspace?.id ? { workspaceId: currentWorkspace.id } : {};
+      const response = await categoryService.getCategories(params);
       const data = response.data || response;
       setCategories(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -90,7 +93,9 @@ const CategoriesPage = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="mb-1">Categorías</h2>
-          <p className="text-muted mb-0">Organiza tus tareas por categorías</p>
+          <p className="text-muted mb-0">
+            {currentWorkspace ? `Tablero: ${currentWorkspace.name}` : 'Organiza tus tareas por categorías'}
+          </p>
         </div>
         <Button
           className="btn-add-category"
@@ -181,6 +186,7 @@ const CategoriesPage = () => {
         onCategoryCreated={handleCategoryCreated}
         onCategoryUpdated={handleCategoryUpdated}
         categoryToEdit={categoryToEdit}
+        workspaceId={currentWorkspace?.id}
       />
 
       <ConfirmModal

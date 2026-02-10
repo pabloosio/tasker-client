@@ -3,14 +3,15 @@ import { Modal, Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
 import { FiCheckSquare, FiEdit2, FiClock, FiLoader, FiCheckCircle } from 'react-icons/fi';
 import taskService from '../../services/taskService';
 
-const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, categories = [] }) => {
+const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, categories = [], workspaceId, workspaceMembers = [] }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'medium',
     status: 'pending',
     dueDate: '',
-    categoryId: ''
+    categoryId: '',
+    assignedTo: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,8 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
         priority: taskToEdit.priority || 'medium',
         status: taskToEdit.status || 'pending',
         dueDate: taskToEdit.dueDate ? taskToEdit.dueDate.split('T')[0] : '',
-        categoryId: taskToEdit.categoryId || ''
+        categoryId: taskToEdit.categoryId || '',
+        assignedTo: taskToEdit.assignedTo || ''
       });
     } else {
       setFormData({
@@ -46,7 +48,8 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
         priority: 'medium',
         status: 'pending',
         dueDate: '',
-        categoryId: ''
+        categoryId: '',
+        assignedTo: ''
       });
     }
   }, [taskToEdit, show]);
@@ -69,7 +72,9 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
       status: formData.status.toUpperCase(),
       priority: formData.priority.toUpperCase(),
       categoryId: formData.categoryId || null,
-      dueDate: formData.dueDate || null
+      dueDate: formData.dueDate || null,
+      assignedTo: formData.assignedTo || null,
+      workspaceId: workspaceId || null
     };
 
     try {
@@ -95,7 +100,8 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
       priority: 'medium',
       status: 'pending',
       dueDate: '',
-      categoryId: ''
+      categoryId: '',
+      assignedTo: ''
     });
     setError('');
     onHide();
@@ -224,6 +230,28 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
               </Form.Group>
             </Col>
           </Row>
+
+          {workspaceMembers.length > 1 && (
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Asignar a</Form.Label>
+                  <Form.Select
+                    name="assignedTo"
+                    value={formData.assignedTo}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sin asignar</option>
+                    {workspaceMembers.map((member) => (
+                      <option key={member.userId} value={member.userId}>
+                        {member.user?.name || member.user?.email} ({member.role})
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+          )}
 
           <div className="d-grid gap-2 mt-4">
             <Button

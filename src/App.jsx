@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { WorkspaceProvider } from './context/WorkspaceContext';
 import PrivateRoute from './components/common/PrivateRoute';
 
 // Pages
@@ -8,6 +9,8 @@ import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import CategoriesPage from './pages/categories/CategoriesPage';
 import ExportPage from './pages/export/ExportPage';
+import WorkspacesPage from './pages/workspaces/WorkspacesPage';
+import WorkspaceDetailPage from './pages/workspaces/WorkspaceDetailPage';
 
 // Styles
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,41 +20,59 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Rutas públicas */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+        <WorkspaceProvider>
+          <Routes>
+            {/* Rutas públicas */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          {/* Rutas protegidas */}
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <DashboardPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/categories"
-            element={
-              <PrivateRoute>
-                <CategoriesPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/export"
-            element={
-              <PrivateRoute>
-                <ExportPage />
-              </PrivateRoute>
-            }
-          />
+            {/* Rutas protegidas */}
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <DashboardPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/categories"
+              element={
+                <PrivateRoute>
+                  <CategoriesPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/export"
+              element={
+                <PrivateRoute>
+                  <ExportPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/workspaces"
+              element={
+                <PrivateRoute>
+                  <WorkspacesPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/workspaces/:id"
+              element={
+                <PrivateRoute>
+                  <WorkspaceDetailPage />
+                </PrivateRoute>
+              }
+            />
 
-          {/* Redireccionamiento por defecto */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
-          <Route path="*" element={<Navigate to="/dashboard" />} />
-        </Routes>
+            {/* Redireccionamiento por defecto */}
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </WorkspaceProvider>
       </AuthProvider>
     </BrowserRouter>
   );
