@@ -1,4 +1,17 @@
 /**
+ * Parsea fechas date-only (YYYY-MM-DD) como medianoche local en vez de UTC.
+ * Fechas con hora (datetimes) se parsean normal con new Date().
+ */
+const parseAsLocal = (date) => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [y, m, d] = date.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(date);
+};
+
+/**
  * Humaniza una fecha relativa al momento actual
  * @param {string|Date} date - Fecha a humanizar
  * @returns {string} - Texto humanizado
@@ -7,7 +20,7 @@ export const humanizeDate = (date) => {
   if (!date) return null;
 
   const now = new Date();
-  const target = new Date(date);
+  const target = parseAsLocal(date);
   const diffMs = now - target;
   const diffSecs = Math.floor(diffMs / 1000);
   const diffMins = Math.floor(diffSecs / 60);
@@ -43,7 +56,7 @@ export const humanizeDate = (date) => {
  */
 export const formatDate = (date) => {
   if (!date) return null;
-  const d = new Date(date);
+  const d = parseAsLocal(date);
   const now = new Date();
   const sameYear = d.getFullYear() === now.getFullYear();
 
@@ -58,7 +71,7 @@ export const formatDate = (date) => {
  */
 export const formatDateTime = (date) => {
   if (!date) return null;
-  const d = new Date(date);
+  const d = parseAsLocal(date);
   const now = new Date();
   const sameYear = d.getFullYear() === now.getFullYear();
 
