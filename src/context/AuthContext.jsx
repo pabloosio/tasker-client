@@ -21,9 +21,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    const response = await authService. register(userData);
-    setUser(response.data.user);
-    return response;
+    const response = await authService.register(userData);
+    // No establecer usuario si requiere verificación de email
+    if (!response.data.requiresEmailVerification) {
+      setUser(response.data.user);
+    }
+    return response.data;
   };
 
   const logout = () => {

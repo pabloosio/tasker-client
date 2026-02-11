@@ -1,7 +1,7 @@
 import { Navbar as BSNavbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut, FiUser, FiHome, FiFolder, FiDownload, FiBriefcase } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiHome, FiFolder, FiDownload, FiBriefcase, FiShield } from 'react-icons/fi';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
@@ -25,16 +25,22 @@ const Navbar = () => {
         <span className="brand-text d-none d-xl-inline">Palomea Tareas</span>
       </BSNavbar.Brand>
 
-      <div className="d-none d-lg-flex ms-3">
-        <WorkspaceSwitcher />
+      <div
+        className="d-flex align-items-center ms-2 ms-lg-3"
+        style={{
+          minWidth: 0,
+          width: '100%',
+          maxWidth: '350px'
+        }}
+      >
+        <div style={{ width: '100%', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
+          <WorkspaceSwitcher />
+        </div>
       </div>
 
       <BSNavbar.Toggle aria-controls="basic-navbar-nav" className="navbar-toggler-custom" />
 
       <BSNavbar.Collapse id="basic-navbar-nav">
-        <div className="d-lg-none mt-3 mb-2">
-          <WorkspaceSwitcher />
-        </div>
 
         <Nav className="mx-auto nav-center">
           <Nav.Link
@@ -89,6 +95,15 @@ const Navbar = () => {
               <FiUser className="me-2" />
               Mi Perfil
             </NavDropdown.Item>
+            {user?.role === 'ADMIN' && (
+              <>
+                <NavDropdown.Divider />
+                <NavDropdown.Item as={Link} to="/admin/users" className="dropdown-item-custom">
+                  <FiShield className="me-2" />
+                  Panel de Admin
+                </NavDropdown.Item>
+              </>
+            )}
             <NavDropdown.Divider />
             <NavDropdown.Item onClick={handleLogout} className="dropdown-item-custom dropdown-item-logout">
               <FiLogOut className="me-2" />

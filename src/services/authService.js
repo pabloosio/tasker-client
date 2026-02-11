@@ -36,6 +36,30 @@ const authService = {
   // Verificar si está autenticado
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
+  },
+
+  // Solicitar reinicio de contraseña
+  forgotPassword: async (email) => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // Validar token de reinicio
+  validateResetToken: async (token) => {
+    const response = await api.get(`/auth/validate-reset-token/${token}`);
+    return response.data;
+  },
+
+  // Reiniciar contraseña
+  resetPassword: async (token, newPassword) => {
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+  },
+
+  // Verificar email
+  verifyEmail: async (token) => {
+    const response = await api.post(`/auth/verify-email/${token}`);
+    return response.data;
   }
 };
 

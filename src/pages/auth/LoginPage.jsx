@@ -64,7 +64,7 @@ const LoginPage = () => {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-4">
+                <Form.Group className="mb-3">
                   <Form.Label>Contraseña</Form.Label>
                   <Form.Control
                     type="password"
@@ -74,6 +74,11 @@ const LoginPage = () => {
                     onChange={handleChange}
                     required
                   />
+                  <small className="d-block text-end mt-2">
+                    <Link to="/forgot-password" className="auth-link">
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                  </small>
                 </Form.Group>
 
                 <Button

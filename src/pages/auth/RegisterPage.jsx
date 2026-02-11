@@ -13,6 +13,8 @@ const RegisterPage = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -41,12 +43,26 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      await register({
+      const result = await register({
         name: formData.name,
         email: formData.email,
         password: formData.password
       });
-      navigate('/dashboard');
+
+      // Si el registro requiere verificación de email
+      if (result?.requiresEmailVerification) {
+        setSuccess(true);
+        setRegisteredEmail(formData.email);
+        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+
+        // Redirigir a login después de 5 segundos
+        setTimeout(() => {
+          navigate('/login');
+        }, 5000);
+      } else {
+        // Si el email ya está verificado (fallback)
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Error al registrarse');
     } finally {
@@ -66,72 +82,99 @@ const RegisterPage = () => {
                 <p className="auth-subtitle">Crea tu cuenta</p>
               </div>
 
-              {error && <Alert className="auth-alert">{error}</Alert>}
+              {error && <Alert className="auth-alert alert-danger">{error}</Alert>}
 
-              <Form onSubmit={handleSubmit} className="auth-form">
-                <Form.Group className="mb-3">
-                  <Form.Label>Nombre</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    placeholder="Tu nombre"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+              {success && (
+                <Alert className="auth-alert alert-success">
+                  <h5 className="alert-heading">¡Registro Exitoso! ✓</h5>
+                  <p>
+                    Te hemos enviado un email de verificación a <strong>{registeredEmail}</strong>
+                  </p>
+                  <hr />
+                  <p className="mb-2">
+                    <strong>Próximos pasos:</strong>
+                  </p>
+                  <ul className="mb-0">
+                    <li>Revisa tu bandeja de entrada</li>
+                    <li><strong>Importante:</strong> Revisa también la carpeta de SPAM</li>
+                    <li>Haz click en el enlace de verificación</li>
+                    <li>Luego podrás iniciar sesión</li>
+                  </ul>
+                  <hr />
+                  <p className="text-muted mb-0">
+                    Serás redirigido a login en 5 segundos...
+                  </p>
+                </Alert>
+              )}
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    placeholder="tu@email.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+              {!success && (
+                <>
+                  <Form onSubmit={handleSubmit} className="auth-form">
+                    <Form.Group className="mb-3">
+                      <Form.Label>Nombre</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        placeholder="Tu nombre"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Email</Form.Label>
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        placeholder="tu@email.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
 
-                <Form.Group className="mb-4">
-                  <Form.Label>Confirmar Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Contraseña</Form.Label>
+                      <Form.Control
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
 
-                <Button
-                  type="submit"
-                  className="w-100 btn-auth"
-                  disabled={loading}
-                >
-                  {loading ? 'Registrando...' : 'Crear Cuenta'}
-                </Button>
-              </Form>
+                    <Form.Group className="mb-4">
+                      <Form.Label>Confirmar Contraseña</Form.Label>
+                      <Form.Control
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="••••••••"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
 
-              <div className="auth-footer">
-                <small>
-                  ¿Ya tienes cuenta?{' '}
-                  <Link to="/login" className="auth-link">Inicia sesión aquí</Link>
-                </small>
-              </div>
+                    <Button
+                      type="submit"
+                      className="w-100 btn-auth"
+                      disabled={loading}
+                    >
+                      {loading ? 'Registrando...' : 'Crear Cuenta'}
+                    </Button>
+                  </Form>
+
+                  <div className="auth-footer">
+                    <small>
+                      ¿Ya tienes cuenta?{' '}
+                      <Link to="/login" className="auth-link">Inicia sesión aquí</Link>
+                    </small>
+                  </div>
+                </>
+              )}
             </Card.Body>
           </Card>
         </Col>
