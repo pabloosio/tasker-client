@@ -161,6 +161,14 @@
   color: var(--danger);
 }
 
+/* Workspace Switcher Wrapper */
+.navbar-switcher-wrapper {
+  flex: 1;
+  min-width: 0;
+  max-width: 350px;
+  margin: 0 0.5rem;
+}
+
 /* Toggler for Mobile */
 .navbar-toggler-custom {
   border: none;
@@ -181,6 +189,19 @@
 @media (max-width: 991.98px) {
   .custom-navbar {
     padding: 0.75rem 1rem;
+    flex-wrap: wrap !important;
+  }
+
+  .custom-navbar > .navbar-brand-custom,
+  .custom-navbar > .navbar-switcher-wrapper,
+  .custom-navbar > .navbar-toggler-custom {
+    flex-shrink: 1;
+  }
+
+  .navbar-switcher-wrapper {
+    flex: 1;
+    min-width: 0;
+    margin: 0 0.5rem;
   }
 
   .navbar-collapse {
@@ -420,7 +441,12 @@
 }
 
 @media (max-width: 576px) {
+  .ws-switcher-toggle {
+    min-width: 0;
+    padding: 0.4rem 0.6rem 0.4rem 0.5rem;
+  }
+
   .ws-switcher-name {
-    max-width: 100px;
+    max-width: 80px;
   }
 }

@@ -25,17 +25,8 @@ const Navbar = () => {
         <span className="brand-text d-none d-xl-inline">Palomea Tareas</span>
       </BSNavbar.Brand>
 
-      <div
-        className="d-flex align-items-center ms-2 ms-lg-3"
-        style={{
-          minWidth: 0,
-          width: '100%',
-          maxWidth: '350px'
-        }}
-      >
-        <div style={{ width: '100%', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
-          <WorkspaceSwitcher />
-        </div>
+      <div className="navbar-switcher-wrapper">
+        <WorkspaceSwitcher />
       </div>
 
       <BSNavbar.Toggle aria-controls="basic-navbar-nav" className="navbar-toggler-custom" />
