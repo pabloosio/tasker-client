@@ -14,6 +14,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
     assignedTo: ''
   });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const isEditing = !!taskToEdit;
@@ -60,11 +61,19 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
       ...formData,
       [name]: value
     });
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
     setLoading(true);
 
     const dataToSend = {
@@ -87,7 +96,15 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
       }
       handleClose();
     } catch (err) {
-      setError(err.response?.data?.message || `Error al ${isEditing ? 'actualizar' : 'crear'} la tarea`);
+      const data = err.response?.data;
+      setError(data?.message || `Error al ${isEditing ? 'actualizar' : 'crear'} la tarea`);
+      if (data?.errors && Array.isArray(data.errors)) {
+        const mapped = {};
+        data.errors.forEach((e) => {
+          mapped[e.field] = e.message;
+        });
+        setFieldErrors(mapped);
+      }
     } finally {
       setLoading(false);
     }
@@ -104,6 +121,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
       assignedTo: ''
     });
     setError('');
+    setFieldErrors({});
     onHide();
   };
 
@@ -118,7 +136,18 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {error && <Alert variant="danger">{error}</Alert>}
+        {error && (
+          <Alert variant="danger">
+            <strong>{error}</strong>
+            {Object.keys(fieldErrors).length > 0 && (
+              <ul className="mb-0 mt-1">
+                {Object.entries(fieldErrors).map(([field, msg]) => (
+                  <li key={field}><strong>{field}:</strong> {msg}</li>
+                ))}
+              </ul>
+            )}
+          </Alert>
+        )}
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Título de la tarea *</Form.Label>
@@ -131,7 +160,11 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
               required
               minLength={3}
               maxLength={255}
+              isInvalid={!!fieldErrors.title}
             />
+            <Form.Control.Feedback type="invalid">
+              {fieldErrors.title}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -144,7 +177,11 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
               value={formData.description}
               onChange={handleChange}
               maxLength={1000}
+              isInvalid={!!fieldErrors.description}
             />
+            <Form.Control.Feedback type="invalid">
+              {fieldErrors.description}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Row>
@@ -209,7 +246,11 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
                   name="dueDate"
                   value={formData.dueDate}
                   onChange={handleChange}
+                  isInvalid={!!fieldErrors.dueDate}
                 />
+                <Form.Control.Feedback type="invalid">
+                  {fieldErrors.dueDate}
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col md={6}>
@@ -219,6 +260,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleChange}
+                  isInvalid={!!fieldErrors.categoryId}
                 >
                   <option value="">Sin categoría</option>
                   {categories.map((category) => (
@@ -227,6 +269,11 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
                     </option>
                   ))}
                 </Form.Select>
+                {fieldErrors.categoryId && (
+                  <Form.Control.Feedback type="invalid">
+                    {fieldErrors.categoryId}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
             </Col>
           </Row>

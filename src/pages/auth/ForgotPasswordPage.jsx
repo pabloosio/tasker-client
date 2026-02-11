@@ -50,8 +50,20 @@ const ForgotPasswordPage = () => {
 
               {success && (
                 <Alert className="auth-alert alert-success">
-                  Se ha enviado un email con las instrucciones para reiniciar tu contraseña.
-                  Redirigiendo a login...
+                  <h6 className="mb-3">¡Email Enviado! ✓</h6>
+                  <p className="mb-2">
+                    Te hemos enviado un email con las instrucciones para reiniciar tu contraseña.
+                  </p>
+                  <p className="fw-bold mb-3">Próximos pasos:</p>
+                  <ul className="mb-3" style={{ paddingLeft: '1.25rem' }}>
+                    <li className="mb-2">Revisa tu <strong>bandeja de entrada</strong></li>
+                    <li className="mb-2">Importante: Revisa también la carpeta de <strong>SPAM</strong></li>
+                    <li className="mb-2">También verifica la carpeta de <strong>TRASH</strong></li>
+                    <li>Haz click en el enlace para reiniciar tu contraseña</li>
+                  </ul>
+                  <small className="text-muted">
+                    Redirigiendo a login en 3 segundos...
+                  </small>
                 </Alert>
               )}
 

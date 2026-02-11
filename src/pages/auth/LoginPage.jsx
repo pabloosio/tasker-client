@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { FiAlertCircle } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo.png';
 import './Auth.css';
@@ -12,8 +13,19 @@ const LoginPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const errorRef = useRef(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Scroll al error cuando aparece
+  useEffect(() => {
+    if (error && errorRef.current) {
+      // Usar setTimeout para asegurar que el DOM está actualizado
+      setTimeout(() => {
+        errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [error]);
 
   const handleChange = (e) => {
     setFormData({
@@ -49,9 +61,19 @@ const LoginPage = () => {
                 <p className="auth-subtitle">Inicia sesión en tu cuenta</p>
               </div>
 
-              {error && <Alert className="auth-alert">{error}</Alert>}
+              {error && (
+                <div ref={errorRef} className="mb-3">
+                  <Alert
+                    className="auth-alert alert-danger d-flex align-items-center gap-2 mb-0"
+                    role="alert"
+                  >
+                    <FiAlertCircle className="flex-shrink-0" size={20} />
+                    <div>{error}</div>
+                  </Alert>
+                </div>
+              )}
 
-              <Form onSubmit={handleSubmit} className="auth-form">
+              <Form className="auth-form" onSubmit={(e) => e.preventDefault()}>
                 <Form.Group className="mb-3">
                   <Form.Label>Email</Form.Label>
                   <Form.Control
@@ -60,6 +82,8 @@ const LoginPage = () => {
                     placeholder="tu@email.com"
                     value={formData.email}
                     onChange={handleChange}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
+                    disabled={loading}
                     required
                   />
                 </Form.Group>
@@ -72,6 +96,8 @@ const LoginPage = () => {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
+                    disabled={loading}
                     required
                   />
                   <small className="d-block text-end mt-2">
@@ -82,8 +108,9 @@ const LoginPage = () => {
                 </Form.Group>
 
                 <Button
-                  type="submit"
+                  type="button"
                   className="w-100 btn-auth"
+                  onClick={handleSubmit}
                   disabled={loading}
                 >
                   {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}

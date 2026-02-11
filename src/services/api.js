@@ -27,11 +27,17 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error. response?.status === 401) {
-      // Token inválido o expirado
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.response?.status === 401) {
+      const requestUrl = error.config?.url || '';
+      const isAuthRoute = requestUrl.includes('/auth/');
+
+      // Solo redirigir si NO es una ruta de auth (login, register, etc.)
+      // En rutas de auth, dejamos que el componente maneje el error
+      if (!isAuthRoute) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

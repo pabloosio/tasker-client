@@ -12,9 +12,14 @@ export const WorkspaceProvider = ({ children }) => {
 
   const fetchWorkspaces = useCallback(async () => {
     if (!isAuthenticated) {
+      // Limpiar estado al cerrar sesión
+      setWorkspaces([]);
+      setCurrentWorkspace(null);
+      localStorage.removeItem('currentWorkspaceId');
       setLoading(false);
       return;
     }
+    setLoading(true);
     try {
       const response = await workspaceService.getWorkspaces();
       const data = response.data || response;
@@ -26,9 +31,7 @@ export const WorkspaceProvider = ({ children }) => {
       const saved = savedId && list.find(w => w.id === savedId);
       const personal = list.find(w => w.isPersonal);
 
-      if (!currentWorkspace) {
-        setCurrentWorkspace(saved || personal || list[0] || null);
-      }
+      setCurrentWorkspace(saved || personal || list[0] || null);
     } catch (err) {
       console.error('Error fetching workspaces:', err);
     } finally {
