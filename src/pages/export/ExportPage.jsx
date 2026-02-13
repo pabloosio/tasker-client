@@ -7,18 +7,21 @@ import exportService from '../../services/exportService';
 const ExportPage = () => {
   const [loading, setLoading] = useState({ excel: false, pdf: false });
   const [error, setError] = useState('');
+  const [errorDetails, setErrorDetails] = useState(null);
   const [success, setSuccess] = useState('');
 
   const handleDownloadExcel = async () => {
     setLoading(prev => ({ ...prev, excel: true }));
     setError('');
+    setErrorDetails(null);
     setSuccess('');
 
     try {
       await exportService.downloadExcel();
-      setSuccess('Archivo Excel descargado correctamente');
+      setSuccess('Descarga de Excel iniciada');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al descargar el archivo Excel');
+      setError(err?.message || 'Error al descargar el archivo Excel');
+      setErrorDetails(err?.details || null);
     } finally {
       setLoading(prev => ({ ...prev, excel: false }));
     }
@@ -27,13 +30,15 @@ const ExportPage = () => {
   const handleDownloadPdf = async () => {
     setLoading(prev => ({ ...prev, pdf: true }));
     setError('');
+    setErrorDetails(null);
     setSuccess('');
 
     try {
       await exportService.downloadPdf();
-      setSuccess('Archivo PDF descargado correctamente');
+      setSuccess('Descarga de PDF iniciada');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al descargar el archivo PDF');
+      setError(err?.message || 'Error al descargar el archivo PDF');
+      setErrorDetails(err?.details || null);
     } finally {
       setLoading(prev => ({ ...prev, pdf: false }));
     }
@@ -53,8 +58,24 @@ const ExportPage = () => {
         </div>
 
         {error && (
-          <Alert variant="danger" dismissible onClose={() => setError('')} className="mb-4">
+          <Alert
+            variant="danger"
+            dismissible
+            onClose={() => {
+              setError('');
+              setErrorDetails(null);
+            }}
+            className="mb-4"
+          >
             {error}
+            {errorDetails && (
+              <details className="mt-2">
+                <summary className="small">Ver detalles</summary>
+                <pre className="small mb-0 mt-2" style={{ whiteSpace: 'pre-wrap' }}>
+                  {JSON.stringify(errorDetails, null, 2)}
+                </pre>
+              </details>
+            )}
           </Alert>
         )}
 

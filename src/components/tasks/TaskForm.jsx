@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal, Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
-import { FiCheckSquare, FiEdit2, FiClock, FiLoader, FiCheckCircle } from 'react-icons/fi';
+import { FiCheckSquare, FiEdit2, FiClock, FiLoader, FiCheckCircle, FiPlus, FiTrash2 } from 'react-icons/fi';
 import taskService from '../../services/taskService';
+import checklistService from '../../services/checklistService';
+import TaskChecklist from './TaskChecklist';
+import './TaskChecklist.css';
 
-const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, categories = [], workspaceId, workspaceMembers = [] }) => {
+const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, categories = [], workspaceId, workspaceMembers = [], onWarning }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -16,6 +19,11 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const descRef = useRef(null);
+
+  // Checklist draft (solo para nueva tarea)
+  const [draftChecklistItems, setDraftChecklistItems] = useState([]);
+  const [newChecklistContent, setNewChecklistContent] = useState('');
 
   const isEditing = !!taskToEdit;
 
@@ -52,6 +60,12 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
         categoryId: '',
         assignedTo: ''
       });
+    }
+
+    // Reset draft checklist cuando se abre el modal en modo "nueva tarea"
+    if (!taskToEdit) {
+      setDraftChecklistItems([]);
+      setNewChecklistContent('');
     }
   }, [taskToEdit, show]);
 
@@ -92,7 +106,44 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
         onTaskUpdated(response.data);
       } else {
         const response = await taskService.createTask(dataToSend);
-        onTaskCreated(response.data);
+        const createdTask = response?.data?.data || response?.data;
+        const createdTaskId = createdTask?.id;
+
+        let checklistFailedCount = 0;
+
+        // Crear checklist items (si el usuario agregó en el borrador)
+        const itemsToCreate = draftChecklistItems
+          .map((i) => (typeof i === 'string' ? i : i?.content))
+          .filter((c) => (c || '').trim().length > 0)
+          .map((c) => c.trim());
+
+        if (createdTaskId && itemsToCreate.length > 0) {
+          for (const content of itemsToCreate) {
+            try {
+              await checklistService.addItem(createdTaskId, content);
+            } catch {
+              checklistFailedCount += 1;
+            }
+          }
+        }
+
+        // Si pudimos crear checklist, traer la tarea actualizada con include de checklistItems
+        let finalResponse = response;
+        if (createdTaskId && itemsToCreate.length > 0) {
+          try {
+            finalResponse = await taskService.getTaskById(createdTaskId);
+          } catch {
+            // si falla el refetch, mantenemos el response original
+          }
+        }
+
+        onTaskCreated(finalResponse.data);
+
+        if (checklistFailedCount > 0 && typeof onWarning === 'function') {
+          onWarning(
+            `La tarea se creó, pero no se pudieron guardar ${checklistFailedCount} ítem(s) del checklist. Abre la tarea para reintentar.`
+          );
+        }
       }
       handleClose();
     } catch (err) {
@@ -122,7 +173,21 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
     });
     setError('');
     setFieldErrors({});
+    setDraftChecklistItems([]);
+    setNewChecklistContent('');
     onHide();
+  };
+
+  const handleAddDraftChecklistItem = (e) => {
+    e.preventDefault();
+    const content = newChecklistContent.trim();
+    if (!content) return;
+    setDraftChecklistItems((prev) => [...(Array.isArray(prev) ? prev : []), { id: `${Date.now()}-${Math.random()}`, content }]);
+    setNewChecklistContent('');
+  };
+
+  const handleRemoveDraftChecklistItem = (id) => {
+    setDraftChecklistItems((prev) => (Array.isArray(prev) ? prev.filter((i) => i.id !== id) : []));
   };
 
   return (
@@ -171,17 +236,32 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
             <Form.Label>Descripción (opcional)</Form.Label>
             <Form.Control
               as="textarea"
-              rows={3}
+              ref={descRef}
+              rows={5}
               name="description"
               placeholder="Agrega más detalles sobre la tarea..."
               value={formData.description}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
               maxLength={1000}
               isInvalid={!!fieldErrors.description}
+              style={{
+                fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+                fontSize: '0.85rem',
+                lineHeight: '1.5',
+                resize: 'vertical',
+                minHeight: '120px'
+              }}
             />
-            <Form.Control.Feedback type="invalid">
-              {fieldErrors.description}
-            </Form.Control.Feedback>
+            <div className="d-flex justify-content-between mt-1">
+              <Form.Control.Feedback type="invalid" style={{ display: fieldErrors.description ? 'block' : 'none' }}>
+                {fieldErrors.description}
+              </Form.Control.Feedback>
+              <small className="text-muted ms-auto">{formData.description.length}/1000</small>
+            </div>
           </Form.Group>
 
           <Row>
@@ -321,6 +401,64 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
             </Button>
           </div>
         </Form>
+
+        {!isEditing && (
+          <div className="task-checklist mt-3">
+            <div className="checklist-header">
+              <span className="checklist-title">Checklist (opcional)</span>
+              {draftChecklistItems.length > 0 && (
+                <span className="checklist-count">{draftChecklistItems.length}</span>
+              )}
+            </div>
+
+            {draftChecklistItems.length > 0 && (
+              <div className="checklist-items">
+                {draftChecklistItems.map((item) => (
+                  <div key={item.id} className="checklist-item">
+                    <span className="checklist-item-text">{item.content}</span>
+                    <button
+                      type="button"
+                      className="checklist-delete-btn"
+                      onClick={() => handleRemoveDraftChecklistItem(item.id)}
+                      title="Eliminar"
+                    >
+                      <FiTrash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <form onSubmit={handleAddDraftChecklistItem} className="checklist-add-form">
+              <Form.Control
+                type="text"
+                size="sm"
+                placeholder="Agregar ítem..."
+                value={newChecklistContent}
+                onChange={(e) => setNewChecklistContent(e.target.value)}
+                maxLength={500}
+                disabled={loading}
+              />
+              <Button
+                type="submit"
+                size="sm"
+                variant="outline-primary"
+                disabled={!newChecklistContent.trim() || loading}
+                className="checklist-add-btn"
+              >
+                <FiPlus size={14} />
+              </Button>
+            </form>
+
+            <small className="text-muted d-block mt-1">
+              Se guardará al crear la tarea.
+            </small>
+          </div>
+        )}
+
+        {isEditing && taskToEdit?.id && (
+          <TaskChecklist taskId={taskToEdit.id} />
+        )}
       </Modal.Body>
     </Modal>
   );

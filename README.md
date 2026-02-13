@@ -56,7 +56,7 @@ VITE_API_URL=http://localhost:3000/api
 npm run dev
 ```
 
-El servidor estará disponible en `http://localhost:5173`
+El servidor estará disponible en `http://localhost:43117`
 
 ## 📦 Scripts Disponibles
 

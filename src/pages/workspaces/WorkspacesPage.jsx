@@ -67,12 +67,16 @@ const WorkspacesPage = () => {
 
   return (
     <MainLayout>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
         <div>
           <h2 className="mb-1">Tableros</h2>
           <p className="text-muted mb-0">Gestiona tus espacios de trabajo</p>
         </div>
-        <Button className="btn-add-category" onClick={() => setShowModal(true)}>
+        <Button
+          size="sm"
+          className="btn-add-category text-nowrap align-self-start"
+          onClick={() => setShowModal(true)}
+        >
           <FiPlus className="me-2" />
           Nuevo Tablero
         </Button>

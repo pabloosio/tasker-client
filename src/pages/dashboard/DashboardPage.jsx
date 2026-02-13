@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Row, Col, Card, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Row, Col, Card, Spinner, Alert, Badge, ProgressBar } from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
@@ -178,13 +178,20 @@ const DashboardPage = () => {
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
-    // Si no hay destino, es la misma posición, o el destino no es "completed"
+    // Si no hay destino o es la misma posición, no hacer nada
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
-    if (destination.droppableId !== 'completed') return;
+
+    const allowedStatuses = ['pending', 'in_progress', 'completed'];
+
+    // Si es dentro de la misma columna, no cambiamos status ni llamamos API
+    if (destination.droppableId === source.droppableId) return;
 
     const newStatus = destination.droppableId;
     const oldStatus = source.droppableId;
+
+    // Solo permitir mover entre las 3 columnas conocidas
+    if (!allowedStatuses.includes(newStatus) || !allowedStatuses.includes(oldStatus)) return;
     const taskId = draggableId;
 
     // Encontrar la tarea
@@ -308,6 +315,24 @@ const DashboardPage = () => {
                 <span className="text-muted" style={{ fontSize: '0.75rem' }}>{task.assignee.name}</span>
               </div>
             )}
+
+            {task.checklistItems?.length > 0 && (() => {
+              const done = task.checklistItems.filter((i) => i.isCompleted).length;
+              const total = task.checklistItems.length;
+              const pct = Math.round((done / total) * 100);
+              return (
+                <div className="d-flex align-items-center gap-2 mb-2" style={{ fontSize: '0.75rem' }}>
+                  <ProgressBar
+                    now={pct}
+                    variant={pct === 100 ? 'success' : 'primary'}
+                    style={{ height: 5, flex: 1, borderRadius: 3 }}
+                  />
+                  <span className="text-muted" style={{ whiteSpace: 'nowrap' }}>
+                    {done}/{total}
+                  </span>
+                </div>
+              );
+            })()}
 
             <div className="task-dates">
               {task.dueDate && (
@@ -520,6 +545,7 @@ const DashboardPage = () => {
         onHide={handleCloseTaskModal}
         onTaskCreated={handleTaskCreated}
         onTaskUpdated={handleTaskUpdated}
+        onWarning={(msg) => setError(msg)}
         taskToEdit={taskToEdit}
         categories={categories}
         workspaceId={currentWorkspace?.id}
