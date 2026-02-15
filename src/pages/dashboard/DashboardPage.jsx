@@ -248,6 +248,8 @@ const DashboardPage = () => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={`kanban-task-card mb-2 ${snapshot.isDragging ? 'dragging' : ''}`}
+          data-priority={task.priority}
+          data-status={task.status}
           onClick={() => handleEditTask(task)}
           style={{
             ...provided.draggableProps.style,
@@ -256,7 +258,7 @@ const DashboardPage = () => {
         >
           <Card.Body className="p-3">
             <div className="d-flex justify-content-between align-items-start mb-2">
-              <h6 className="mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
+              <h6 className="task-title mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
                 {task.title}
               </h6>
               <div className="d-flex gap-1">
@@ -284,7 +286,7 @@ const DashboardPage = () => {
             </div>
 
             {task.description && (
-              <p className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
+              <p className="task-description text-muted mb-2" style={{ fontSize: '0.85rem' }}>
                 {task.description}
               </p>
             )}
@@ -361,7 +363,7 @@ const DashboardPage = () => {
 
   const KanbanColumn = ({ status, title, icon: Icon, color, tasks: columnTasks, footer }) => (
     <Col lg={4} md={6} className="mb-4 mb-lg-0">
-      <div className="kanban-column">
+      <div className="kanban-column" data-status={status} style={{ '--kanban-accent': color }}>
         <div className="kanban-column-header">
           <div className="d-flex align-items-center gap-2 mb-2">
             <Icon size={18} style={{ color }} />
