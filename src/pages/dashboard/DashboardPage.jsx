@@ -547,7 +547,7 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-        <div className="d-flex align-items-center gap-2">
+        <div className="stats-actions d-flex align-items-center gap-2 flex-wrap justify-content-end">
           <button
             type="button"
             className="add-task-btn add-task-btn--ghost"

@@ -104,6 +104,11 @@ body {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  min-width: 0;
+}
+
+.stats-actions {
+  min-width: 0;
 }
 
 .stat-card-mini {
@@ -172,10 +177,19 @@ body {
 @media (max-width: 576px) {
   .stats-bar-container {
     padding: 0.4rem 0.5rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   .stats-cards {
     gap: 0.6rem;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+
+  .stats-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
   }
 
   .stat-card-mini {
