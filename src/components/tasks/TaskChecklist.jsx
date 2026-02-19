@@ -35,8 +35,7 @@ const TaskChecklist = ({ taskId, onProgressChange }) => {
     }
   };
 
-  const handleAdd = async (e) => {
-    e.preventDefault();
+  const addItem = async () => {
     if (!newContent.trim()) return;
     setAdding(true);
     try {
@@ -122,26 +121,40 @@ const TaskChecklist = ({ taskId, onProgressChange }) => {
         ))}
       </div>
 
-      <form onSubmit={handleAdd} className="checklist-add-form">
+      <div className="checklist-add-form">
         <Form.Control
           type="text"
           size="sm"
           placeholder="Agregar ítem..."
           value={newContent}
           onChange={(e) => setNewContent(e.target.value)}
+          onKeyDown={(e) => {
+            // Importante: este componente vive dentro del <Form> del modal (TaskForm).
+            // Evitamos que Enter dispare el submit y cierre el modal.
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+              addItem();
+            }
+          }}
           maxLength={500}
           disabled={adding}
         />
         <Button
-          type="submit"
+          type="button"
           size="sm"
           variant="outline-primary"
           disabled={!newContent.trim() || adding}
           className="checklist-add-btn"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            addItem();
+          }}
         >
           {adding ? <Spinner animation="border" size="sm" /> : <FiPlus size={14} />}
         </Button>
-      </form>
+      </div>
     </div>
   );
 };

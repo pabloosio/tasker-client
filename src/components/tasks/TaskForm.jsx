@@ -216,12 +216,19 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
     onHide();
   };
 
-  const handleAddDraftChecklistItem = (e) => {
-    e.preventDefault();
+  const addDraftChecklistItem = () => {
     const content = newChecklistContent.trim();
     if (!content) return;
-    setDraftChecklistItems((prev) => [...(Array.isArray(prev) ? prev : []), { id: `${Date.now()}-${Math.random()}`, content }]);
+    setDraftChecklistItems((prev) => [
+      ...(Array.isArray(prev) ? prev : []),
+      { id: `${Date.now()}-${Math.random()}`, content }
+    ]);
     setNewChecklistContent('');
+  };
+
+  const handleAddDraftChecklistItem = (e) => {
+    e.preventDefault();
+    addDraftChecklistItem();
   };
 
   const handleRemoveDraftChecklistItem = (id) => {
@@ -451,26 +458,39 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
                 </div>
               )}
 
-              <form onSubmit={handleAddDraftChecklistItem} className="checklist-add-form">
+              <div className="checklist-add-form">
                 <Form.Control
                   type="text"
                   size="sm"
                   placeholder="Agregar ítem..."
                   value={newChecklistContent}
                   onChange={(e) => setNewChecklistContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Evitar que Enter dispare el submit del Form principal
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      addDraftChecklistItem();
+                    }
+                  }}
                   maxLength={500}
                   disabled={loading}
                 />
                 <Button
-                  type="submit"
+                  type="button"
                   size="sm"
                   variant="outline-primary"
                   disabled={!newChecklistContent.trim() || loading}
                   className="checklist-add-btn"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addDraftChecklistItem();
+                  }}
                 >
                   <FiPlus size={14} />
                 </Button>
-              </form>
+              </div>
 
               <small className="text-muted d-block mt-1">
                 Se guardará al crear la tarea.

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Row, Col, Card, Spinner, Alert, Badge, ProgressBar } from 'react-bootstrap';
+import { Row, Col, Card, Spinner, Alert, Badge, ProgressBar, Form, Offcanvas } from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiCheckSquare } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import TaskForm from '../../components/tasks/TaskForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -20,7 +20,16 @@ const DashboardPage = () => {
   const [categories, setCategories] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+
+  const [filters, setFilters] = useState({
+    q: '',
+    priority: '',
+    categoryId: '',
+    assignee: '' // '' | 'UNASSIGNED' | userId
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   // Task modals
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -52,7 +61,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (currentWorkspace) {
-      fetchData();
+      fetchData({ showLoading: true });
     }
   }, [currentWorkspace?.id]);
 
@@ -63,9 +72,9 @@ const DashboardPage = () => {
     priority: task.priority?.toLowerCase() || 'medium'
   });
 
-  const fetchData = async () => {
+  const fetchData = async ({ showLoading } = { showLoading: true }) => {
     if (!currentWorkspace) return;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     const wsParams = { workspaceId: currentWorkspace.id };
 
     try {
@@ -107,7 +116,18 @@ const DashboardPage = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Error al cargar datos');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (!currentWorkspace) return;
+    setError('');
+    setRefreshing(true);
+    try {
+      await fetchData({ showLoading: false });
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -238,20 +258,86 @@ const DashboardPage = () => {
   const sortByAssignee = (taskList) => {
     if (!user || currentWorkspace?.isPersonal) return taskList;
     return [...taskList].sort((a, b) => {
-      const aIsMe = a.assignedTo === user.id ? 0 : 1;
-      const bIsMe = b.assignedTo === user.id ? 0 : 1;
+      const aAssignedTo = a.assignedTo || a.assignee?.id;
+      const bAssignedTo = b.assignedTo || b.assignee?.id;
+      const aIsMe = aAssignedTo === user.id ? 0 : 1;
+      const bIsMe = bAssignedTo === user.id ? 0 : 1;
       return aIsMe - bIsMe;
     });
   };
 
   // Agrupar tareas por estado
   const allTasks = Array.isArray(tasks) ? tasks : [];
-  const allCompleted = sortByAssignee(allTasks.filter(t => t.status === 'completed'));
+
+  const filteredTasks = allTasks.filter((t) => {
+    // Búsqueda
+    if (filters.q.trim()) {
+      const q = filters.q.trim().toLowerCase();
+      const hay = `${t.title || ''} ${t.description || ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+
+    // Prioridad
+    if (filters.priority) {
+      if ((t.priority || '').toLowerCase() !== filters.priority) return false;
+    }
+
+    // Categoría
+    if (filters.categoryId) {
+      const taskCategoryId = t.categoryId || t.category?.id || '';
+      if (taskCategoryId !== filters.categoryId) return false;
+    }
+
+    // Asignación
+    if (filters.assignee) {
+      const assignedTo = t.assignedTo || t.assignee?.id || '';
+      if (filters.assignee === 'UNASSIGNED') {
+        if (assignedTo) return false;
+      } else {
+        if (assignedTo !== filters.assignee) return false;
+      }
+    }
+
+    return true;
+  });
+
+  const allCompleted = sortByAssignee(filteredTasks.filter(t => t.status === 'completed'));
   const tasksByStatus = {
-    pending: sortByAssignee(allTasks.filter(t => t.status === 'pending')),
-    in_progress: sortByAssignee(allTasks.filter(t => t.status === 'in_progress')),
+    pending: sortByAssignee(filteredTasks.filter(t => t.status === 'pending')),
+    in_progress: sortByAssignee(filteredTasks.filter(t => t.status === 'in_progress')),
     completed: allCompleted.slice(0, completedLimit)
   };
+
+  const hasActiveFilters = !!(filters.q.trim() || filters.priority || filters.categoryId || filters.assignee);
+  const activeFilterCount =
+    (filters.q.trim() ? 1 : 0) +
+    (filters.priority ? 1 : 0) +
+    (filters.categoryId ? 1 : 0) +
+    (filters.assignee ? 1 : 0);
+  const assigneeOptions = (() => {
+    const opts = [
+      { value: '', label: 'Todos' },
+      { value: 'UNASSIGNED', label: 'Sin asignar' }
+    ];
+
+    const memberList = Array.isArray(members) ? members : [];
+    const seen = new Set();
+    memberList.forEach((m) => {
+      const id = m.userId || m.user?.id;
+      if (!id || seen.has(id)) return;
+      seen.add(id);
+      const name = m.user?.name || m.user?.email || 'Usuario';
+      const suffix = user?.id && id === user.id ? ' (tú)' : '';
+      opts.push({ value: id, label: `${name}${suffix}` });
+    });
+
+    // En workspaces personales puede no haber lista de miembros, pero igual permitimos filtrar por "tú"
+    if (user?.id && !seen.has(user.id)) {
+      opts.push({ value: user.id, label: `${user.name || user.email || 'Tú'} (tú)` });
+    }
+
+    return opts;
+  })();
 
   const TaskCard = ({ task, index }) => (
     <Draggable draggableId={task.id} index={index}>
@@ -461,16 +547,42 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-        <button
-          className="add-task-btn"
-          onClick={() => {
-            setTaskToEdit(null);
-            setShowTaskModal(true);
-          }}
-        >
-          <FiPlus size={18} />
-          <span className="add-task-text">Nueva</span>
-        </button>
+        <div className="d-flex align-items-center gap-2">
+          <button
+            type="button"
+            className="add-task-btn add-task-btn--ghost"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="Refrescar dashboard"
+          >
+            <FiCheckSquare size={16} style={{ color: 'var(--primary)' }} />
+            {refreshing ? <Spinner animation="border" size="sm" /> : <FiRefreshCw size={18} />}
+          </button>
+          <button
+            type="button"
+            className="add-task-btn add-task-btn--ghost"
+            onClick={() => setShowFilters(true)}
+            title="Filtros"
+          >
+            <FiFilter size={18} />
+            {activeFilterCount > 0 && (
+              <Badge bg="secondary" pill style={{ fontSize: '0.65rem' }}>
+                {activeFilterCount}
+              </Badge>
+            )}
+          </button>
+          <button
+            type="button"
+            className="add-task-btn"
+            onClick={() => {
+              setTaskToEdit(null);
+              setShowTaskModal(true);
+            }}
+          >
+            <FiPlus size={18} />
+            <span className="add-task-text">Nueva</span>
+          </button>
+        </div>
       </div>
 
       {/* Kanban Board con Drag & Drop */}
@@ -553,6 +665,91 @@ const DashboardPage = () => {
           </div>
         </DragDropContext>
       )}
+
+      {/* Sidebar / Offcanvas de filtros (para no alterar el layout del dashboard) */}
+      <Offcanvas show={showFilters} onHide={() => setShowFilters(false)} placement="end">
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Filtros</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          <div className="mb-2">
+            <small className="text-muted">
+              Mostrando {filteredTasks.length} tarea(s)
+              {hasActiveFilters ? ' (filtradas)' : ''}
+            </small>
+          </div>
+
+          <Form.Group className="mb-3">
+            <Form.Label className="small text-muted mb-1">Buscar</Form.Label>
+            <Form.Control
+              size="sm"
+              placeholder="Título o descripción…"
+              value={filters.q}
+              onChange={(e) => setFilters((prev) => ({ ...prev, q: e.target.value }))}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label className="small text-muted mb-1">Prioridad</Form.Label>
+            <Form.Select
+              size="sm"
+              value={filters.priority}
+              onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              <option value="high">Alta</option>
+              <option value="medium">Media</option>
+              <option value="low">Baja</option>
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label className="small text-muted mb-1">Categoría</Form.Label>
+            <Form.Select
+              size="sm"
+              value={filters.categoryId}
+              onChange={(e) => setFilters((prev) => ({ ...prev, categoryId: e.target.value }))}
+            >
+              <option value="">Todas</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Label className="small text-muted mb-1">Asignación</Form.Label>
+            <Form.Select
+              size="sm"
+              value={filters.assignee}
+              onChange={(e) => setFilters((prev) => ({ ...prev, assignee: e.target.value }))}
+            >
+              {assigneeOptions.map((o) => (
+                <option key={o.value || 'ALL'} value={o.value}>{o.label}</option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          <div className="d-flex gap-2">
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary"
+              onClick={() => setFilters({ q: '', priority: '', categoryId: '', assignee: '' })}
+              disabled={!hasActiveFilters}
+            >
+              <FiX className="me-1" />
+              Limpiar
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              onClick={() => setShowFilters(false)}
+            >
+              Listo
+            </button>
+          </div>
+        </Offcanvas.Body>
+      </Offcanvas>
 
       {/* Modals */}
       <TaskForm

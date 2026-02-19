@@ -150,6 +150,21 @@ body {
   transition: background 0.15s ease;
 }
 
+.add-task-btn--ghost {
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--primary-dark);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.add-task-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.add-task-btn--ghost:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .add-task-btn:hover {
   background: var(--primary-dark);
 }
