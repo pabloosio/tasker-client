@@ -31,7 +31,7 @@ export const humanizeDate = (date) => {
 
   // Futuro
   if (diffMs < 0) {
-    const futureDays = Math.abs(diffDays);
+    const futureDays = Math.floor(-diffMs / (1000 * 60 * 60 * 24));
     if (futureDays === 0) return 'Hoy';
     if (futureDays === 1) return 'Mañana';
     if (futureDays < 7) return `En ${futureDays} días`;

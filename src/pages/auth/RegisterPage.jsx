@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo.png';
+import { AuthFeaturesDesktop, AuthFeaturesMobile } from './AuthFeaturesPanel';
 import './Auth.css';
 
 const RegisterPage = () => {
@@ -12,6 +14,8 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
@@ -20,10 +24,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -49,18 +50,15 @@ const RegisterPage = () => {
         password: formData.password
       });
 
-      // Si el registro requiere verificación de email
       if (result?.requiresEmailVerification) {
         setSuccess(true);
         setRegisteredEmail(formData.email);
         setFormData({ name: '', email: '', password: '', confirmPassword: '' });
 
-        // Redirigir a login después de 5 segundos
         setTimeout(() => {
           navigate('/login');
         }, 5000);
       } else {
-        // Si el email ya está verificado (fallback)
         navigate('/dashboard');
       }
     } catch (err) {
@@ -72,8 +70,19 @@ const RegisterPage = () => {
 
   return (
     <div className="auth-container">
-      <Row className="w-100 justify-content-center">
-        <Col xs={11} sm={8} md={6} lg={5} xl={4}>
+      <Row className="w-100 justify-content-center align-items-center g-4" style={{ maxWidth: '1100px', margin: '0 auto' }}>
+
+        {/* Panel izquierdo — solo desktop */}
+        <Col lg={6} xl={7} className="d-none d-lg-block">
+          <AuthFeaturesDesktop />
+        </Col>
+
+        {/* Formulario */}
+        <Col xs={11} sm={9} md={7} lg={5} xl={4}>
+
+          {/* Tira de features — solo mobile, encima del card */}
+          <AuthFeaturesMobile />
+
           <Card className="auth-card">
             <Card.Body>
               <div className="auth-header">
@@ -109,7 +118,7 @@ const RegisterPage = () => {
 
               {!success && (
                 <>
-                  <Form onSubmit={handleSubmit} className="auth-form">
+                  <Form onSubmit={handleSubmit} className="auth-form" autoComplete="off">
                     <Form.Group className="mb-3">
                       <Form.Label>Nombre</Form.Label>
                       <Form.Control
@@ -118,44 +127,70 @@ const RegisterPage = () => {
                         placeholder="Tu nombre"
                         value={formData.name}
                         onChange={handleChange}
+                        autoComplete="off"
                         required
                       />
                     </Form.Group>
 
                     <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
+                      <Form.Label>Correo electrónico</Form.Label>
                       <Form.Control
                         type="email"
                         name="email"
-                        placeholder="tu@email.com"
+                        placeholder="tu@correo.com"
                         value={formData.email}
                         onChange={handleChange}
+                        autoComplete="off"
                         required
                       />
                     </Form.Group>
 
                     <Form.Group className="mb-3">
                       <Form.Label>Contraseña</Form.Label>
-                      <Form.Control
-                        type="password"
-                        name="password"
-                        placeholder="••••••••"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                      />
+                      <div className="auth-password-wrapper">
+                        <Form.Control
+                          type={showPassword ? 'text' : 'password'}
+                          name="password"
+                          placeholder="••••••••"
+                          value={formData.password}
+                          onChange={handleChange}
+                          autoComplete="new-password"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="auth-password-toggle"
+                          onClick={() => setShowPassword((v) => !v)}
+                          tabIndex={-1}
+                          aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        >
+                          {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                        </button>
+                      </div>
                     </Form.Group>
 
                     <Form.Group className="mb-4">
-                      <Form.Label>Confirmar Contraseña</Form.Label>
-                      <Form.Control
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="••••••••"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
-                      />
+                      <Form.Label>Confirmar contraseña</Form.Label>
+                      <div className="auth-password-wrapper">
+                        <Form.Control
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          name="confirmPassword"
+                          placeholder="••••••••"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          autoComplete="new-password"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="auth-password-toggle"
+                          onClick={() => setShowConfirmPassword((v) => !v)}
+                          tabIndex={-1}
+                          aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        >
+                          {showConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                        </button>
+                      </div>
                     </Form.Group>
 
                     <Button
@@ -178,6 +213,7 @@ const RegisterPage = () => {
             </Card.Body>
           </Card>
         </Col>
+
       </Row>
     </div>
   );

@@ -1,21 +1,20 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import workspaceService from '../services/workspaceService';
+import api from '../services/api';
 import { useAuth } from './AuthContext';
 
 const WorkspaceContext = createContext(null);
 
 export const WorkspaceProvider = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, updateUser } = useAuth();
   const [workspaces, setWorkspaces] = useState([]);
   const [currentWorkspace, setCurrentWorkspace] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchWorkspaces = useCallback(async () => {
     if (!isAuthenticated) {
-      // Limpiar estado al cerrar sesión
       setWorkspaces([]);
       setCurrentWorkspace(null);
-      localStorage.removeItem('currentWorkspaceId');
       setLoading(false);
       return;
     }
@@ -26,18 +25,16 @@ export const WorkspaceProvider = ({ children }) => {
       const list = Array.isArray(data) ? data : [];
       setWorkspaces(list);
 
-      // Restaurar workspace guardado o usar Personal por defecto
-      const savedId = localStorage.getItem('currentWorkspaceId');
-      const saved = savedId && list.find(w => w.id === savedId);
+      // Usar workspace fijado como default; si no hay, usar el personal
+      const pinned = user?.pinnedWorkspaceId && list.find(w => w.id === user.pinnedWorkspaceId);
       const personal = list.find(w => w.isPersonal);
-
-      setCurrentWorkspace(saved || personal || list[0] || null);
+      setCurrentWorkspace(pinned || personal || list[0] || null);
     } catch (err) {
       console.error('Error fetching workspaces:', err);
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.pinnedWorkspaceId]);
 
   useEffect(() => {
     fetchWorkspaces();
@@ -45,13 +42,24 @@ export const WorkspaceProvider = ({ children }) => {
 
   const switchWorkspace = (workspace) => {
     setCurrentWorkspace(workspace);
-    localStorage.setItem('currentWorkspaceId', workspace.id);
+  };
+
+  const pinWorkspace = async (workspaceId) => {
+    // Si ya está fijado, desfijar (null); si no, fijar
+    const newPinId = user?.pinnedWorkspaceId === workspaceId ? null : workspaceId;
+    try {
+      await api.put('/users/profile', { pinnedWorkspaceId: newPinId });
+      updateUser({ pinnedWorkspaceId: newPinId });
+    } catch (err) {
+      console.error('Error al fijar workspace:', err);
+    }
   };
 
   const value = {
     workspaces,
     currentWorkspace,
     switchWorkspace,
+    pinWorkspace,
     loading,
     refreshWorkspaces: fetchWorkspaces
   };

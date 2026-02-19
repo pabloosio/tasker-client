@@ -4,6 +4,7 @@ import { FiCheckSquare, FiEdit2, FiClock, FiLoader, FiCheckCircle, FiPlus, FiTra
 import taskService from '../../services/taskService';
 import checklistService from '../../services/checklistService';
 import TaskChecklist from './TaskChecklist';
+import CategoryForm from '../categories/CategoryForm';
 import './TaskChecklist.css';
 
 const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, categories = [], workspaceId, workspaceMembers = [], onWarning }) => {
@@ -20,6 +21,10 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const descRef = useRef(null);
+
+  // Categorías locales (se puede agregar una nueva sin cerrar el form)
+  const [localCategories, setLocalCategories] = useState(categories);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   // Checklist draft (solo para nueva tarea)
   const [draftChecklistItems, setDraftChecklistItems] = useState([]);
@@ -38,6 +43,22 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
     { value: 'in_progress', label: 'En Progreso', color: '#0dcaf0', icon: FiLoader },
     { value: 'completed', label: 'Completada', color: '#198754', icon: FiCheckCircle }
   ];
+
+  // Sincronizar categorías locales cuando el prop cambia (ej: primera carga)
+  useEffect(() => {
+    setLocalCategories(categories);
+  }, [categories]);
+
+  // Categoría creada desde el form: agregar al dropdown y auto-seleccionar
+  const handleInlineCategoryCreated = (newCategory) => {
+    const cat = newCategory?.data || newCategory;
+    setLocalCategories((prev) => [...prev, cat]);
+    setFormData((prev) => ({ ...prev, categoryId: cat.id }));
+    if (fieldErrors.categoryId) {
+      setFieldErrors((prev) => { const next = { ...prev }; delete next.categoryId; return next; });
+    }
+    setShowCategoryModal(false);
+  };
 
   useEffect(() => {
     if (taskToEdit) {
@@ -88,6 +109,23 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
     e.preventDefault();
     setError('');
     setFieldErrors({});
+
+    // Validación básica frontend
+    const frontendErrors = {};
+    if (!formData.title || formData.title.trim().length < 3) {
+      frontendErrors.title = 'El título debe tener al menos 3 caracteres';
+    }
+    if (!formData.categoryId) {
+      frontendErrors.categoryId = 'Debes seleccionar una categoría';
+    }
+    if (!formData.priority) {
+      frontendErrors.priority = 'Debes seleccionar una prioridad';
+    }
+    if (Object.keys(frontendErrors).length > 0) {
+      setFieldErrors(frontendErrors);
+      return;
+    }
+
     setLoading(true);
 
     const dataToSend = {
@@ -191,6 +229,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
   };
 
   return (
+    <>
     <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="d-flex align-items-center gap-2">
@@ -265,18 +304,16 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
           </Form.Group>
 
           <Row>
-            <Col md={12}>
+            <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Prioridad</Form.Label>
-                <div className="priority-selector">
+                <Form.Label>Prioridad *</Form.Label>
+                <div className="priority-selector" style={{ flexDirection: 'column', gap: '0.3rem' }}>
                   {priorities.map((priority) => (
                     <button
                       key={priority.value}
                       type="button"
                       className={`priority-option ${formData.priority === priority.value ? 'selected' : ''}`}
-                      style={{
-                        '--priority-color': priority.color
-                      }}
+                      style={{ '--priority-color': priority.color, width: '100%' }}
                       onClick={() => setFormData({ ...formData, priority: priority.value })}
                     >
                       <span
@@ -289,13 +326,10 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
                 </div>
               </Form.Group>
             </Col>
-           
-          </Row>
-          <Row>
-             <Col md={12}>
+            <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Estado</Form.Label>
-                <div className="status-selector">
+                <div className="status-selector" style={{ flexDirection: 'column', gap: '0.3rem' }}>
                   {statuses.map((status) => {
                     const IconComponent = status.icon;
                     return (
@@ -303,9 +337,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
                         key={status.value}
                         type="button"
                         className={`status-option ${formData.status === status.value ? 'selected' : ''}`}
-                        style={{
-                          '--status-color': status.color
-                        }}
+                        style={{ '--status-color': status.color, width: '100%' }}
                         onClick={() => setFormData({ ...formData, status: status.value })}
                       >
                         <IconComponent size={14} style={{ color: status.color }} />
@@ -335,15 +367,27 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Categoría</Form.Label>
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <Form.Label className="mb-0">Categoría *</Form.Label>
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm p-0 text-decoration-none"
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={() => setShowCategoryModal(true)}
+                    title="Crear nueva categoría sin salir"
+                  >
+                    <FiPlus size={12} className="me-1" />
+                    Nueva
+                  </button>
+                </div>
                 <Form.Select
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleChange}
                   isInvalid={!!fieldErrors.categoryId}
                 >
-                  <option value="">Sin categoría</option>
-                  {categories.map((category) => (
+                  <option value="">Selecciona una categoría</option>
+                  {localCategories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
@@ -380,6 +424,64 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
             </Row>
           )}
 
+          {!isEditing && (
+            <div className="task-checklist mt-3">
+              <div className="checklist-header">
+                <span className="checklist-title">Subtareas (opcional)</span>
+                {draftChecklistItems.length > 0 && (
+                  <span className="checklist-count">{draftChecklistItems.length}</span>
+                )}
+              </div>
+
+              {draftChecklistItems.length > 0 && (
+                <div className="checklist-items">
+                  {draftChecklistItems.map((item) => (
+                    <div key={item.id} className="checklist-item">
+                      <span className="checklist-item-text">{item.content}</span>
+                      <button
+                        type="button"
+                        className="checklist-delete-btn"
+                        onClick={() => handleRemoveDraftChecklistItem(item.id)}
+                        title="Eliminar"
+                      >
+                        <FiTrash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <form onSubmit={handleAddDraftChecklistItem} className="checklist-add-form">
+                <Form.Control
+                  type="text"
+                  size="sm"
+                  placeholder="Agregar ítem..."
+                  value={newChecklistContent}
+                  onChange={(e) => setNewChecklistContent(e.target.value)}
+                  maxLength={500}
+                  disabled={loading}
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="outline-primary"
+                  disabled={!newChecklistContent.trim() || loading}
+                  className="checklist-add-btn"
+                >
+                  <FiPlus size={14} />
+                </Button>
+              </form>
+
+              <small className="text-muted d-block mt-1">
+                Se guardará al crear la tarea.
+              </small>
+            </div>
+          )}
+
+          {isEditing && taskToEdit?.id && (
+            <TaskChecklist taskId={taskToEdit.id} />
+          )}
+
           <div className="d-grid gap-2 mt-4">
             <Button
               variant="primary"
@@ -401,66 +503,16 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
             </Button>
           </div>
         </Form>
-
-        {!isEditing && (
-          <div className="task-checklist mt-3">
-            <div className="checklist-header">
-              <span className="checklist-title">Checklist (opcional)</span>
-              {draftChecklistItems.length > 0 && (
-                <span className="checklist-count">{draftChecklistItems.length}</span>
-              )}
-            </div>
-
-            {draftChecklistItems.length > 0 && (
-              <div className="checklist-items">
-                {draftChecklistItems.map((item) => (
-                  <div key={item.id} className="checklist-item">
-                    <span className="checklist-item-text">{item.content}</span>
-                    <button
-                      type="button"
-                      className="checklist-delete-btn"
-                      onClick={() => handleRemoveDraftChecklistItem(item.id)}
-                      title="Eliminar"
-                    >
-                      <FiTrash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <form onSubmit={handleAddDraftChecklistItem} className="checklist-add-form">
-              <Form.Control
-                type="text"
-                size="sm"
-                placeholder="Agregar ítem..."
-                value={newChecklistContent}
-                onChange={(e) => setNewChecklistContent(e.target.value)}
-                maxLength={500}
-                disabled={loading}
-              />
-              <Button
-                type="submit"
-                size="sm"
-                variant="outline-primary"
-                disabled={!newChecklistContent.trim() || loading}
-                className="checklist-add-btn"
-              >
-                <FiPlus size={14} />
-              </Button>
-            </form>
-
-            <small className="text-muted d-block mt-1">
-              Se guardará al crear la tarea.
-            </small>
-          </div>
-        )}
-
-        {isEditing && taskToEdit?.id && (
-          <TaskChecklist taskId={taskToEdit.id} />
-        )}
       </Modal.Body>
     </Modal>
+
+    <CategoryForm
+      show={showCategoryModal}
+      onHide={() => setShowCategoryModal(false)}
+      onCategoryCreated={handleInlineCategoryCreated}
+      workspaceId={workspaceId}
+    />
+    </>
   );
 };
 

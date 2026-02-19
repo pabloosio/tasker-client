@@ -412,6 +412,32 @@
   flex-shrink: 0;
 }
 
+.ws-pin-btn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.ws-switcher-item:hover .ws-pin-btn {
+  opacity: 0.5;
+}
+
+.ws-pin-btn:hover {
+  opacity: 1 !important;
+}
+
+/* Estrella fijada: siempre visible */
+.ws-pin-btn.pinned {
+  opacity: 1;
+}
+
 /* Manage link */
 .ws-switcher-manage {
   display: flex !important;

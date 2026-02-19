@@ -9,10 +9,12 @@ import taskService from '../../services/taskService';
 import categoryService from '../../services/categoryService';
 import workspaceService from '../../services/workspaceService';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { useAuth } from '../../context/AuthContext';
 import { humanizeDate, formatDate } from '../../utils/dateUtils';
 
 const DashboardPage = () => {
   const { currentWorkspace } = useWorkspace();
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -232,11 +234,22 @@ const DashboardPage = () => {
     }
   };
 
+  // En workspaces compartidos, poner primero las tareas asignadas al usuario actual
+  const sortByAssignee = (taskList) => {
+    if (!user || currentWorkspace?.isPersonal) return taskList;
+    return [...taskList].sort((a, b) => {
+      const aIsMe = a.assignedTo === user.id ? 0 : 1;
+      const bIsMe = b.assignedTo === user.id ? 0 : 1;
+      return aIsMe - bIsMe;
+    });
+  };
+
   // Agrupar tareas por estado
-  const allCompleted = (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'completed');
+  const allTasks = Array.isArray(tasks) ? tasks : [];
+  const allCompleted = sortByAssignee(allTasks.filter(t => t.status === 'completed'));
   const tasksByStatus = {
-    pending: (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'pending'),
-    in_progress: (Array.isArray(tasks) ? tasks : []).filter(t => t.status === 'in_progress'),
+    pending: sortByAssignee(allTasks.filter(t => t.status === 'pending')),
+    in_progress: sortByAssignee(allTasks.filter(t => t.status === 'in_progress')),
     completed: allCompleted.slice(0, completedLimit)
   };
 

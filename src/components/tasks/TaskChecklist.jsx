@@ -86,7 +86,7 @@ const TaskChecklist = ({ taskId, onProgressChange }) => {
   return (
     <div className="task-checklist">
       <div className="checklist-header">
-        <span className="checklist-title">Checklist</span>
+        <span className="checklist-title">Subtareas</span>
         {total > 0 && (
           <span className="checklist-count">{completed}/{total}</span>
         )}
@@ -109,7 +109,7 @@ const TaskChecklist = ({ taskId, onProgressChange }) => {
               onChange={() => handleToggle(item.id)}
               className="checklist-checkbox"
             />
-            <span className="checklist-item-text">{item.content}</span>
+            <span className="checklist-item-text" onClick={() => handleToggle(item.id)} style={{ cursor: 'pointer' }}>{item.content}</span>
             <button
               type="button"
               className="checklist-delete-btn"
