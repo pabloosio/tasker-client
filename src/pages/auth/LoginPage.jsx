@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { FiAlertCircle, FiEye, FiEyeOff } from 'react-icons/fi';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo.png';
 import { AuthFeaturesDesktop, AuthFeaturesMobile } from './AuthFeaturesPanel';
@@ -46,6 +47,13 @@ const LoginPage = () => {
   };
 
   return (
+    <>
+    <Helmet>
+      <title>Iniciar Sesión — Palomea Tareas | Tablero Kanban Gratis</title>
+      <meta name="description" content="Inicia sesión en Palomea Tareas y organiza tus tareas con un tablero Kanban. Gestiona proyectos, asigna prioridades y colabora con tu equipo. Gratis." />
+      <meta property="og:title" content="Iniciar Sesión — Palomea Tareas" />
+      <meta property="og:description" content="Accede a tu tablero Kanban y organiza tus tareas y proyectos en equipo." />
+    </Helmet>
     <div className="auth-container">
       <Row className="w-100 justify-content-center align-items-center g-4" style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
@@ -147,6 +155,7 @@ const LoginPage = () => {
 
       </Row>
     </div>
+    </>
   );
 };
 

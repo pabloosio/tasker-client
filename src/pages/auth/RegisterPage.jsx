@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo.png';
 import { AuthFeaturesDesktop, AuthFeaturesMobile } from './AuthFeaturesPanel';
@@ -69,6 +70,13 @@ const RegisterPage = () => {
   };
 
   return (
+    <>
+    <Helmet>
+      <title>Crear Cuenta Gratis — Palomea Tareas | Gestión de Tareas con Kanban</title>
+      <meta name="description" content="Regístrate gratis en Palomea Tareas. Organiza tus tareas con un tablero Kanban, crea subtareas, asigna prioridades y colabora con tu equipo. Sin costo." />
+      <meta property="og:title" content="Crear Cuenta Gratis — Palomea Tareas" />
+      <meta property="og:description" content="Regístrate gratis y empieza a organizar tu trabajo con un tablero Kanban. Gestiona tareas, equipos y proyectos en un solo lugar." />
+    </Helmet>
     <div className="auth-container">
       <Row className="w-100 justify-content-center align-items-center g-4" style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
@@ -216,6 +224,7 @@ const RegisterPage = () => {
 
       </Row>
     </div>
+    </>
   );
 };
 
