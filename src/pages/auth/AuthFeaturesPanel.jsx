@@ -1,4 +1,4 @@
-import { FiCheckSquare, FiUsers, FiTag, FiCalendar, FiDownload, FiList } from 'react-icons/fi';
+import { FiCheckSquare, FiUsers, FiTag, FiCalendar, FiDownload, FiList, FiBarChart2 } from 'react-icons/fi';
 
 // Lista de características del producto.
 // Actualizar aquí Y en CLAUDE.md cuando se agregue o elimine una característica.
@@ -32,6 +32,11 @@ export const FEATURES = [
     icon: FiDownload,
     title: 'Exporta a Excel o PDF',
     desc: 'Lleva el reporte de tus tareas a donde lo necesites.'
+  },
+  {
+    icon: FiBarChart2,
+    title: 'Reporte semanal',
+    desc: 'Cada lunes ve cuántas tareas completaste y qué tan productivo fuiste la semana pasada.'
   }
 ];
 

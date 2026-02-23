@@ -86,7 +86,7 @@ const RegisterPage = () => {
         </Col>
 
         {/* Formulario */}
-        <Col xs={11} sm={9} md={7} lg={5} xl={4}>
+        <Col xs={12} sm={9} md={7} lg={5} xl={4}>
 
           {/* Tira de features — solo mobile, encima del card */}
           <AuthFeaturesMobile />
