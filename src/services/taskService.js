@@ -41,6 +41,12 @@ const taskService = {
   getStats: async (params = {}) => {
     const response = await api.get('/tasks/stats', { params });
     return response.data;
+  },
+
+  // Obtener reporte semanal de productividad
+  getWeeklyReport: async (params = {}) => {
+    const response = await api.get('/tasks/weekly-report', { params });
+    return response.data;
   }
 };
 

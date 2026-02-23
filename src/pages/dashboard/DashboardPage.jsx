@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Row, Col, Card, Spinner, Alert, Badge, ProgressBar, Form, Offcanvas } from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiCheckSquare } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiCheckSquare, FiBarChart2 } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import TaskForm from '../../components/tasks/TaskForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import WeeklyReportModal from '../../components/tasks/WeeklyReportModal';
 import taskService from '../../services/taskService';
 import categoryService from '../../services/categoryService';
 import workspaceService from '../../services/workspaceService';
@@ -40,6 +41,10 @@ const DashboardPage = () => {
   // Completadas visibles
   const [completedLimit, setCompletedLimit] = useState(10);
 
+  // Weekly report modal
+  const [showWeeklyReport, setShowWeeklyReport] = useState(false);
+  const [weeklyReportOffset, setWeeklyReportOffset] = useState(-1);
+
   // Kanban mobile slider
   const [activeColumn, setActiveColumn] = useState(0);
   const kanbanScrollRef = useRef(null);
@@ -64,6 +69,19 @@ const DashboardPage = () => {
       fetchData({ showLoading: true });
     }
   }, [currentWorkspace?.id]);
+
+  // Mostrar reporte semanal automáticamente los lunes (una vez por día)
+  useEffect(() => {
+    const today = new Date();
+    const isMonday = today.getDay() === 1;
+    const todayStr = today.toISOString().split('T')[0];
+    const lastShown = localStorage.getItem('weeklyReportLastShown');
+    if (isMonday && lastShown !== todayStr) {
+      setWeeklyReportOffset(-1);
+      setShowWeeklyReport(true);
+      localStorage.setItem('weeklyReportLastShown', todayStr);
+    }
+  }, []);
 
   // Normalizar status y priority a minúsculas
   const normalizeTask = (task) => ({
@@ -561,6 +579,14 @@ const DashboardPage = () => {
           <button
             type="button"
             className="add-task-btn add-task-btn--ghost"
+            onClick={() => { setWeeklyReportOffset(0); setShowWeeklyReport(true); }}
+            title="Reporte semanal"
+          >
+            <FiBarChart2 size={18} />
+          </button>
+          <button
+            type="button"
+            className="add-task-btn add-task-btn--ghost"
             onClick={() => setShowFilters(true)}
             title="Filtros"
           >
@@ -773,6 +799,13 @@ const DashboardPage = () => {
         confirmText="Eliminar"
         variant="danger"
         loading={deletingTask}
+      />
+
+      <WeeklyReportModal
+        show={showWeeklyReport}
+        onHide={() => setShowWeeklyReport(false)}
+        initialWeekOffset={weeklyReportOffset}
+        workspaceId={currentWorkspace?.id}
       />
     </MainLayout>
   );

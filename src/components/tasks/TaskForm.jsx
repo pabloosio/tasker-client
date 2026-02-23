@@ -502,12 +502,21 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
             <TaskChecklist taskId={taskToEdit.id} />
           )}
 
-          <div className="d-grid gap-2 mt-4">
+          <div className="d-flex gap-2 mt-4">
+            <Button
+              variant="outline-secondary"
+              type="button"
+              disabled={loading}
+              onClick={handleClose}
+              className="flex-shrink-0"
+            >
+              Cancelar
+            </Button>
             <Button
               variant="primary"
               type="submit"
               disabled={loading}
-              className="btn-create-task"
+              className="btn-create-task flex-grow-1"
             >
               {loading ? (
                 <>
