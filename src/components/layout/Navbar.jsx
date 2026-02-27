@@ -1,7 +1,7 @@
 import { Navbar as BSNavbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut, FiUser, FiHome, FiFolder, FiDownload, FiBriefcase, FiShield } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiHome, FiFolder, FiBarChart2, FiBriefcase, FiShield } from 'react-icons/fi';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
@@ -63,8 +63,8 @@ const Navbar = () => {
             to="/export"
             className={`nav-link-custom ${isActive('/export') ? 'active' : ''}`}
           >
-            <FiDownload className="nav-icon" />
-            <span> Exportar</span>
+            <FiBarChart2 className="nav-icon" />
+            <span> Reportes</span>
           </Nav.Link>
         </Nav>
 

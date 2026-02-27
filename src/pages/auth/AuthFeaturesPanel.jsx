@@ -1,4 +1,4 @@
-import { FiCheckSquare, FiUsers, FiTag, FiCalendar, FiDownload, FiList, FiBarChart2 } from 'react-icons/fi';
+import { FiCheckSquare, FiUsers, FiTag, FiCalendar, FiBarChart2, FiList, FiLayers } from 'react-icons/fi';
 
 // Lista de características del producto.
 // Actualizar aquí Y en CLAUDE.md cuando se agregue o elimine una característica.
@@ -12,6 +12,11 @@ export const FEATURES = [
     icon: FiUsers,
     title: 'Colabora en equipo',
     desc: 'Crea tableros compartidos, invita miembros y asigna tareas a quien corresponda.'
+  },
+  {
+    icon: FiLayers,
+    title: 'Tableros y espacios',
+    desc: 'Organiza tu trabajo en tableros separados: personal, laboral o por proyecto.'
   },
   {
     icon: FiList,
@@ -29,14 +34,9 @@ export const FEATURES = [
     desc: 'Marca plazos y niveles Alta / Media / Baja para enfocarte en lo importante.'
   },
   {
-    icon: FiDownload,
-    title: 'Exporta a Excel o PDF',
-    desc: 'Lleva el reporte de tus tareas a donde lo necesites.'
-  },
-  {
     icon: FiBarChart2,
-    title: 'Reporte semanal',
-    desc: 'Cada lunes ve cuántas tareas completaste y qué tan productivo fuiste la semana pasada.'
+    title: 'Reportes semanales y mensuales',
+    desc: 'Visualiza qué se hizo, quién lo hizo y descarga el reporte en Excel o PDF.'
   }
 ];
 
