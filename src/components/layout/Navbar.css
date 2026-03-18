@@ -1,0 +1,478 @@
+/* ========================================
+   Custom Navbar - Tema Lavanda
+   ======================================== */
+
+.custom-navbar {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  padding: 0.75rem 2rem;
+  box-shadow: 0 4px 20px rgba(155, 139, 180, 0.3);
+  width: 100%;
+}
+
+/* Brand */
+.navbar-brand-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: white !important;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-custom:hover .brand-logo {
+  transform: scale(1.05);
+}
+
+.brand-text {
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+/* Nav Links Center */
+.nav-center {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-link-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link-custom:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-link-custom.active {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link-custom.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: white;
+  border-radius: 3px 3px 0 0;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+}
+
+/* User Dropdown */
+.nav-end {
+  display: flex;
+  align-items: center;
+}
+
+.user-dropdown .dropdown-toggle {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.user-dropdown .dropdown-toggle::after {
+  display: none;
+}
+
+.user-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background: white;
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.user-name {
+  color: white;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Dropdown Menu */
+.user-dropdown .dropdown-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  min-width: 180px;
+}
+
+.dropdown-item-custom {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.dropdown-item-custom:hover {
+  background: var(--primary-pastel);
+  color: var(--primary-dark);
+}
+
+.dropdown-item-logout:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* Workspace Switcher Wrapper */
+.navbar-switcher-wrapper {
+  flex: 1;
+  min-width: 0;
+  max-width: 350px;
+  margin: 0 0.5rem;
+}
+
+/* Toggler for Mobile */
+.navbar-toggler-custom {
+  border: none;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px;
+}
+
+.navbar-toggler-custom:focus {
+  box-shadow: none;
+}
+
+.navbar-toggler-custom .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .custom-navbar {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap !important;
+  }
+
+  .custom-navbar > .navbar-brand-custom,
+  .custom-navbar > .navbar-switcher-wrapper,
+  .custom-navbar > .navbar-toggler-custom {
+    flex-shrink: 1;
+  }
+
+  .navbar-switcher-wrapper {
+    flex: 1;
+    min-width: 0;
+    margin: 0 0.5rem;
+  }
+
+  .navbar-collapse {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .nav-center {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .nav-link-custom {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .nav-link-custom.active::after {
+    display: none;
+  }
+
+  .nav-end {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .user-dropdown-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .user-name {
+    display: inline !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .brand-text {
+    font-size: 1.15rem;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+}
+
+/* ========================================
+   Workspace Switcher
+   ======================================== */
+
+.ws-switcher-dropdown .dropdown-toggle {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.ws-switcher-dropdown .dropdown-toggle::after {
+  display: none;
+}
+
+.ws-switcher-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem 0.5rem 0.6rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  min-width: 160px;
+}
+
+.ws-switcher-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ws-switcher-icon {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+.ws-switcher-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.ws-switcher-chevron {
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ws-switcher-dropdown.show .ws-switcher-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.ws-switcher-dropdown .dropdown-menu {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  padding: 0.5rem;
+  margin-top: 0.6rem;
+  min-width: 270px;
+  animation: wsSlideDown 0.15s ease;
+}
+
+@keyframes wsSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ws-switcher-header {
+  padding: 0.5rem 0.85rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-500, #9ca3af);
+}
+
+/* Workspace items */
+.ws-switcher-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  padding: 0.55rem 0.85rem !important;
+  border-radius: 9px !important;
+  color: var(--gray-700, #374151) !important;
+  font-size: 0.9rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.ws-switcher-item:hover {
+  background: var(--primary-pastel, #ede9fe) !important;
+  color: var(--primary-dark, #5b21b6) !important;
+}
+
+.ws-switcher-item.ws-active {
+  background: var(--primary-pastel, #ede9fe) !important;
+  color: var(--primary-dark, #5b21b6) !important;
+  font-weight: 600;
+}
+
+.ws-item-icon {
+  width: 30px;
+  height: 30px;
+  background: var(--primary-pastel, #ede9fe);
+  color: var(--primary, #7c3aed);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ws-switcher-item.ws-active .ws-item-icon {
+  background: var(--primary, #7c3aed);
+  color: white;
+}
+
+.ws-item-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ws-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-item-badge {
+  font-size: 0.62rem !important;
+  padding: 0.15rem 0.4rem !important;
+  border-radius: 4px !important;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ws-item-check {
+  color: var(--primary, #7c3aed);
+  flex-shrink: 0;
+}
+
+.ws-pin-btn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.ws-switcher-item:hover .ws-pin-btn {
+  opacity: 0.5;
+}
+
+.ws-pin-btn:hover {
+  opacity: 1 !important;
+}
+
+/* Estrella fijada: siempre visible */
+.ws-pin-btn.pinned {
+  opacity: 1;
+}
+
+/* Manage link */
+.ws-switcher-manage {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0.55rem 0.85rem !important;
+  border-radius: 9px !important;
+  color: var(--gray-500, #9ca3af) !important;
+  font-size: 0.85rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.ws-switcher-manage:hover {
+  background: var(--gray-100, #f3f4f6) !important;
+  color: var(--gray-700, #374151) !important;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .ws-switcher-toggle {
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .ws-switcher-name {
+    max-width: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .ws-switcher-toggle {
+    min-width: 0;
+    padding: 0.4rem 0.6rem 0.4rem 0.5rem;
+  }
+
+  .ws-switcher-name {
+    max-width: 80px;
+  }
+}

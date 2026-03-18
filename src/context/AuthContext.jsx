@@ -1,0 +1,62 @@
+import { createContext, useContext, useState, useEffect } from 'react';
+import authService from '../services/authService';
+
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Cargar usuario al iniciar
+    const currentUser = authService.getCurrentUser();
+    setUser(currentUser);
+    setLoading(false);
+  }, []);
+
+  const login = async (credentials) => {
+    const response = await authService.login(credentials);
+    setUser(response.data.user);
+    return response;
+  };
+
+  const register = async (userData) => {
+    const response = await authService.register(userData);
+    // No establecer usuario si requiere verificación de email
+    if (!response.data.requiresEmailVerification) {
+      setUser(response.data.user);
+    }
+    return response.data;
+  };
+
+  const logout = () => {
+    authService.logout();
+    setUser(null);
+  };
+
+  const updateUser = (partialUser) => {
+    const updated = { ...user, ...partialUser };
+    setUser(updated);
+    localStorage.setItem('user', JSON.stringify(updated));
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    updateUser,
+    isAuthenticated: !!user
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+  }
+  return context;
+};

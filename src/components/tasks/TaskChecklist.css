@@ -1,0 +1,118 @@
+.task-checklist {
+  border-top: 1px solid var(--gray-200, #e5e7eb);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.checklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.checklist-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--gray-700, #374151);
+}
+
+.checklist-count {
+  font-size: 0.8rem;
+  color: var(--gray-500, #6b7280);
+  font-weight: 500;
+}
+
+.checklist-progress {
+  height: 6px;
+  border-radius: 3px;
+}
+
+.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.checklist-item:hover {
+  background: var(--gray-100, #f3f4f6);
+}
+
+.checklist-item.completed .checklist-item-text {
+  text-decoration: line-through;
+  color: var(--gray-400, #9ca3af);
+}
+
+.checklist-checkbox {
+  flex-shrink: 0;
+}
+
+.checklist-item-text {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--gray-700, #374151);
+  word-break: break-word;
+}
+
+.checklist-delete-btn {
+  background: none;
+  border: none;
+  color: var(--gray-500, #6b7280);
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.checklist-item:hover .checklist-delete-btn {
+  opacity: 1;
+}
+
+.checklist-delete-btn:hover {
+  color: var(--danger, #dc3545);
+  background: var(--danger-light, #fde8e8);
+}
+
+.checklist-delete-btn:focus-visible {
+  outline: 2px solid rgba(220, 53, 69, 0.35);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+/* En pantallas táctiles no hay hover: mantener visible */
+@media (hover: none) {
+  .checklist-delete-btn {
+    opacity: 0.85;
+    background: var(--gray-100, #f3f4f6);
+  }
+}
+
+.checklist-add-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.checklist-add-form .form-control {
+  font-size: 0.85rem;
+}
+
+.checklist-add-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+}

@@ -1,0 +1,502 @@
+/* ========================================
+   Auth Pages - Login & Register (Post-it)
+   ======================================== */
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  position: relative;
+
+  /* Fondo tipo tablero de corcho */
+  background:
+    repeating-conic-gradient(
+      rgba(139, 119, 90, 0.03) 0% 25%,
+      transparent 0% 50%
+    ) 0 0 / 28px 28px,
+    linear-gradient(135deg, #d4b896 0%, #c4a882 40%, #b89b74 100%);
+}
+
+/* Post-its decorativos de fondo */
+.auth-container::before,
+.auth-container::after {
+  content: '';
+  position: absolute;
+  border-radius: 0.35rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Post-it decorativo verde (arriba-izquierda) */
+.auth-container::before {
+  width: 120px;
+  height: 120px;
+  top: 12%;
+  left: 8%;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
+    #c9f7e3;
+  transform: rotate(-8deg);
+}
+
+/* Post-it decorativo rosado (abajo-derecha) */
+.auth-container::after {
+  width: 100px;
+  height: 100px;
+  bottom: 15%;
+  right: 10%;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
+    #ffd0dc;
+  transform: rotate(6deg);
+}
+
+/* ========================================
+   Auth Card (Post-it principal)
+   ======================================== */
+.auth-card {
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
+  overflow: visible;
+  transform: rotate(-1.2deg);
+
+  /* Fondo post-it amarillo con brillo y sombra sutil */
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 45%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0) 35%),
+    #fff5c0;
+
+  /* Sombra tipo post-it pegado */
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 12px 28px rgba(16, 24, 40, 0.12),
+    0 4px 10px rgba(16, 24, 40, 0.08);
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.auth-card:hover {
+  transform: rotate(-0.6deg) translateY(-3px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 18px 36px rgba(16, 24, 40, 0.15),
+    0 8px 16px rgba(16, 24, 40, 0.10);
+}
+
+/* Cinta adhesiva translúcida */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 72px;
+  height: 20px;
+  transform: translateX(-50%) rotate(1deg);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(16, 24, 40, 0.08);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Esquina doblada */
+.auth-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  background:
+    linear-gradient(
+      315deg,
+      rgba(0, 0, 0, 0.06) 0%,
+      rgba(255, 255, 255, 0.3) 48%,
+      rgba(255, 255, 255, 0.85) 100%
+    );
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  border-radius: 0 0 0.5rem 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.auth-card .card-body {
+  padding: 2.5rem;
+  padding-top: 2.75rem; /* espacio extra para la cinta */
+}
+
+/* ========================================
+   Header
+   ======================================== */
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 1rem;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+}
+
+.auth-subtitle {
+  color: var(--gray-600);
+  font-size: 0.95rem;
+}
+
+/* ========================================
+   Form (sobre fondo post-it)
+   ======================================== */
+.auth-form .form-label {
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+}
+
+.auth-form .form-control {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.75);
+  transition: all 0.2s ease;
+}
+
+.auth-form .form-control:focus {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(111, 99, 198, 0.15);
+}
+
+.auth-form .form-control::placeholder {
+  color: var(--gray-500);
+}
+
+/* ========================================
+   Password toggle (ojito)
+   ======================================== */
+.auth-password-wrapper {
+  position: relative;
+}
+
+.auth-password-wrapper .form-control {
+  padding-right: 2.75rem;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--gray-500, #9ca3af);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.auth-password-toggle:hover {
+  color: var(--primary, #6f63c6);
+}
+
+/* ========================================
+   Button
+   ======================================== */
+.btn-auth {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border: none;
+  padding: 0.85rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(111, 99, 198, 0.35);
+}
+
+.btn-auth:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(111, 99, 198, 0.45);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #4a3f9a 100%);
+}
+
+.btn-auth:active {
+  transform: translateY(0);
+}
+
+.btn-auth:disabled {
+  opacity: 0.7;
+  transform: none;
+}
+
+/* ========================================
+   Alert (sobre post-it)
+   ======================================== */
+.auth-alert {
+  border-radius: 0.5rem;
+  border: none;
+  background: rgba(232, 139, 139, 0.2);
+  color: #9B4A4A;
+  font-size: 0.9rem;
+}
+
+.auth-alert.alert-success {
+  background: rgba(123, 200, 156, 0.2);
+  color: #3a7a56;
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.auth-footer small {
+  color: var(--gray-600);
+}
+
+.auth-link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* ========================================
+   Features Panel (pantalla dividida — lado izquierdo)
+   ======================================== */
+.auth-features {
+  padding: 1rem 1.5rem;
+  color: #2d1f0f;
+}
+
+.auth-features-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(61, 44, 26, 0.75);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  padding: 0.25rem 0.8rem;
+  margin-bottom: 1.1rem;
+}
+
+.auth-features-headline {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  color: #1a0f05;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.35);
+}
+
+.auth-features-headline span {
+  color: var(--primary, #6f63c6);
+  background: rgba(255, 255, 255, 0.55);
+  padding: 0 0.3rem;
+  border-radius: 5px;
+}
+
+.auth-features-sub {
+  color: rgba(61, 44, 26, 0.7);
+  font-size: 1rem;
+  margin-bottom: 1.75rem;
+  line-height: 1.55;
+}
+
+.auth-features-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.auth-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.8rem;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.auth-feature-item:hover {
+  background: rgba(255, 255, 255, 0.62);
+  transform: translateY(-1px);
+}
+
+.auth-feature-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--primary, #6f63c6), var(--primary-dark, #5a50b0));
+  color: white;
+  border-radius: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.1rem;
+  box-shadow: 0 2px 6px rgba(111, 99, 198, 0.3);
+}
+
+.auth-feature-item strong {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1a0f05;
+  line-height: 1.3;
+  margin-bottom: 0.15rem;
+}
+
+.auth-feature-item p {
+  font-size: 0.73rem;
+  color: rgba(61, 44, 26, 0.68);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ========================================
+   Features Mobile (tira de pills encima del card)
+   ======================================== */
+.auth-features-mobile {
+  margin-bottom: 0.75rem;
+}
+
+.auth-features-mobile-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(61, 44, 26, 0.6);
+  margin-bottom: 0.45rem;
+  text-align: center;
+}
+
+/* Scroll horizontal — evita wrap desordenado con muchas pills */
+.auth-features-pills {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 93%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 4%, black 93%, transparent 100%);
+}
+
+.auth-features-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.auth-feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #2d1f0f;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 1.25rem 0.75rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .auth-container::before,
+  .auth-container::after {
+    opacity: 0.4;
+    transform: scale(0.6);
+  }
+}
+
+@media (max-width: 576px) {
+  .auth-container {
+    padding: 1.5rem 1rem;
+    align-items: flex-start;
+  }
+
+  .auth-card {
+    /* Sin rotación en mobile — se ve raro en pantallas pequeñas */
+    transform: none;
+    border-radius: 0.75rem;
+  }
+
+  .auth-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .auth-card .card-body {
+    padding: 1.5rem 1.25rem;
+    padding-top: 1.75rem;
+  }
+
+  .auth-logo-img {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 0.65rem;
+  }
+
+  .auth-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .auth-title {
+    font-size: 1.3rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.88rem;
+  }
+
+  /* Ocultar post-its decorativos en mobile */
+  .auth-container::before,
+  .auth-container::after {
+    display: none;
+  }
+}
