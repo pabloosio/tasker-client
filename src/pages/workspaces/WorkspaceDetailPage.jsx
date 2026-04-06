@@ -12,7 +12,8 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 const ROLE_LABELS = {
   OWNER: { label: 'Propietario', variant: 'primary' },
   ADMIN: { label: 'Administrador', variant: 'warning' },
-  MEMBER: { label: 'Miembro', variant: 'secondary' }
+  MEMBER: { label: 'Miembro', variant: 'secondary' },
+  VIEWER: { label: 'Observador', variant: 'info' }
 };
 
 const WorkspaceDetailPage = () => {
@@ -217,6 +218,7 @@ const WorkspaceDetailPage = () => {
                             >
                               <option value="ADMIN">Administrador</option>
                               <option value="MEMBER">Miembro</option>
+                              <option value="VIEWER">Observador</option>
                             </Form.Select>
                           ) : (
                             <Badge bg={roleInfo.variant}>{roleInfo.label}</Badge>
@@ -286,6 +288,7 @@ const WorkspaceDetailPage = () => {
                     >
                       <option value="MEMBER">Miembro</option>
                       <option value="ADMIN">Administrador</option>
+                      <option value="VIEWER">Observador</option>
                     </Form.Select>
                   </Form.Group>
                   <Button type="submit" variant="primary" size="sm" className="w-100" disabled={inviting || !inviteUserId}>
@@ -306,6 +309,7 @@ const WorkspaceDetailPage = () => {
                   <li><strong>Propietario:</strong> Control total</li>
                   <li><strong>Admin:</strong> Gestionar miembros y tareas</li>
                   <li><strong>Miembro:</strong> Crear y editar tareas</li>
+                  <li><strong>Observador:</strong> Solo lectura</li>
                 </ul>
               </Card.Body>
             </Card>

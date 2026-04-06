@@ -55,13 +55,16 @@ export const WorkspaceProvider = ({ children }) => {
     }
   };
 
+  const isViewer = currentWorkspace?.myRole === 'VIEWER';
+
   const value = {
     workspaces,
     currentWorkspace,
     switchWorkspace,
     pinWorkspace,
     loading,
-    refreshWorkspaces: fetchWorkspaces
+    refreshWorkspaces: fetchWorkspaces,
+    isViewer
   };
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

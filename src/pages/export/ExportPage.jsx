@@ -154,7 +154,7 @@ const ReportPreview = ({ data, loading }) => {
                   <span style={{ color: PRIORITY_MAP[task.priority] }}>{PRIORITY_LABEL[task.priority]}</span>
                   {task.checklistTotal > 0 && <span>{task.checklistDone}/{task.checklistTotal} ítems</span>}
                   <span>Creada: {formatDate(task.createdAt)}</span>
-                  {task.dueDate && <span>Vence: {formatDate(task.dueDate)}</span>}
+                  {task.dueDate && <span>Para: {formatDate(task.dueDate)}</span>}
                   {task.completedAt && <span style={{ color: '#166534', fontWeight: 600 }}>Completada: {formatDate(task.completedAt)}</span>}
                 </div>
 

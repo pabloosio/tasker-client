@@ -1,7 +1,7 @@
 import { Navbar as BSNavbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut, FiUser, FiHome, FiFolder, FiBarChart2, FiBriefcase, FiShield } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiSunrise, FiHome, FiFolder, FiBarChart2, FiBriefcase, FiShield } from 'react-icons/fi';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
@@ -34,7 +34,15 @@ const Navbar = () => {
       <BSNavbar.Collapse id="basic-navbar-nav">
 
         <Nav className="mx-auto nav-center">
-          <Nav.Link
+          {/* <Nav.Link
+            as={Link}
+            to="/hoy"
+            className={`nav-link-custom ${isActive('/hoy') ? 'active' : ''}`}
+          >
+            <FiSunrise className="nav-icon" />
+            <span> Hoy</span>
+          </Nav.Link> */}
+<Nav.Link
             as={Link}
             to="/dashboard"
             className={`nav-link-custom ${isActive('/tasks') || isActive('/dashboard') ? 'active' : ''}`}

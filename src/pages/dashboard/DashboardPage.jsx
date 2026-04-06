@@ -4,6 +4,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiCheckSquare, FiBarChart2 } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import TaskForm from '../../components/tasks/TaskForm';
+import TaskViewModal from '../../components/tasks/TaskViewModal';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import WeeklyReportModal from '../../components/tasks/WeeklyReportModal';
 import taskService from '../../services/taskService';
@@ -14,7 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 import { humanizeDate, formatDate } from '../../utils/dateUtils';
 
 const DashboardPage = () => {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, isViewer } = useWorkspace();
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -216,6 +217,7 @@ const DashboardPage = () => {
 
   // Drag & Drop handler
   const handleDragEnd = async (result) => {
+    if (isViewer) return;
     const { destination, source, draggableId } = result;
 
     // Si no hay destino o es la misma posición, no hacer nada
@@ -358,7 +360,7 @@ const DashboardPage = () => {
   })();
 
   const TaskCard = ({ task, index }) => (
-    <Draggable draggableId={task.id} index={index}>
+    <Draggable draggableId={task.id} index={index} isDragDisabled={isViewer}>
       {(provided, snapshot) => (
         <Card
           ref={provided.innerRef}
@@ -370,7 +372,7 @@ const DashboardPage = () => {
           onClick={() => handleEditTask(task)}
           style={{
             ...provided.draggableProps.style,
-            cursor: 'grab'
+            cursor: isViewer ? 'pointer' : 'grab'
           }}
         >
           <Card.Body className="p-3">
@@ -378,28 +380,30 @@ const DashboardPage = () => {
               <h6 className="task-title mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
                 {task.title}
               </h6>
-              <div className="d-flex gap-1">
-                <button
-                  className="btn-icon btn-icon-edit btn-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEditTask(task);
-                  }}
-                  title="Editar"
-                >
-                  <FiEdit2 size={14} />
-                </button>
-                <button
-                  className="btn-icon btn-icon-delete btn-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTaskToDelete(task);
-                  }}
-                  title="Eliminar"
-                >
-                  <FiTrash2 size={14} />
-                </button>
-              </div>
+              {!isViewer && (
+                <div className="d-flex gap-1">
+                  <button
+                    className="btn-icon btn-icon-edit btn-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditTask(task);
+                    }}
+                    title="Editar"
+                  >
+                    <FiEdit2 size={14} />
+                  </button>
+                  <button
+                    className="btn-icon btn-icon-delete btn-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTaskToDelete(task);
+                    }}
+                    title="Eliminar"
+                  >
+                    <FiTrash2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
 
             {task.description && (
@@ -457,7 +461,7 @@ const DashboardPage = () => {
               {task.dueDate && (
                 <div className="text-muted" style={{ fontSize: '0.8rem' }}>
                   <FiCalendar size={12} className="me-1" style={{ display: 'inline' }} />
-                  {formatDate(task.dueDate)}
+                  Para: {formatDate(task.dueDate)}
                 </div>
               )}
               {task.status === 'completed' && task.completedAt && (
@@ -527,6 +531,12 @@ const DashboardPage = () => {
 
   return (
     <MainLayout>
+      {isViewer && (
+        <Alert variant="info" className="mb-4 py-2">
+          Estás viendo este tablero en modo <strong>solo lectura</strong>. No podés crear ni modificar tareas.
+        </Alert>
+      )}
+
       {error && (
         <Alert variant="danger" dismissible onClose={() => setError('')} className="mb-4">
           {error}
@@ -604,6 +614,8 @@ const DashboardPage = () => {
               setTaskToEdit(null);
               setShowTaskModal(true);
             }}
+            disabled={isViewer}
+            title={isViewer ? 'Solo lectura: no podés crear tareas en este tablero' : undefined}
           >
             <FiPlus size={18} />
             <span className="add-task-text">Nueva</span>
@@ -778,17 +790,25 @@ const DashboardPage = () => {
       </Offcanvas>
 
       {/* Modals */}
-      <TaskForm
-        show={showTaskModal}
-        onHide={handleCloseTaskModal}
-        onTaskCreated={handleTaskCreated}
-        onTaskUpdated={handleTaskUpdated}
-        onWarning={(msg) => setError(msg)}
-        taskToEdit={taskToEdit}
-        categories={categories}
-        workspaceId={currentWorkspace?.id}
-        workspaceMembers={members}
-      />
+      {isViewer ? (
+        <TaskViewModal
+          show={showTaskModal}
+          onHide={handleCloseTaskModal}
+          task={taskToEdit}
+        />
+      ) : (
+        <TaskForm
+          show={showTaskModal}
+          onHide={handleCloseTaskModal}
+          onTaskCreated={handleTaskCreated}
+          onTaskUpdated={handleTaskUpdated}
+          onWarning={(msg) => setError(msg)}
+          taskToEdit={taskToEdit}
+          categories={categories}
+          workspaceId={currentWorkspace?.id}
+          workspaceMembers={members}
+        />
+      )}
 
       <ConfirmModal
         show={!!taskToDelete}

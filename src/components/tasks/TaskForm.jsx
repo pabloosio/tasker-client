@@ -359,7 +359,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Fecha de vencimiento</Form.Label>
+                <Form.Label>Programar para</Form.Label>
                 <Form.Control
                   type="date"
                   name="dueDate"
