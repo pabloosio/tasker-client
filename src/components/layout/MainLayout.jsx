@@ -10,7 +10,7 @@ const MainLayout = ({ children }) => {
       <footer className="app-footer mt-auto w-100">
         <div className="text-center">
           <small>
-            © 2024 Palomea Tareas
+            © {new Date().getFullYear()} Palomea Tareas
           </small>
         </div>
       </footer>
