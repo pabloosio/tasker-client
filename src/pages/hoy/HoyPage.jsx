@@ -409,7 +409,6 @@ const HoyPage = () => {
                           onMoveToTomorrow={handleMoveToTomorrow}
                         />
                         <button
-                          title="Mover a hoy"
                           onClick={() => handleMoveOverdueToToday(task)}
                           style={{
                             position: 'absolute', top: -8, right: -8,

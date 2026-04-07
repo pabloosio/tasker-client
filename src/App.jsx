@@ -11,7 +11,6 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
-import HoyPage from './pages/hoy/HoyPage';
 import CategoriesPage from './pages/categories/CategoriesPage';
 import ExportPage from './pages/export/ExportPage';
 import WorkspacesPage from './pages/workspaces/WorkspacesPage';
@@ -36,14 +35,6 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmailPage />} />
 
             {/* Rutas protegidas */}
-            <Route
-              path="/hoy"
-              element={
-                <PrivateRoute>
-                  <HoyPage />
-                </PrivateRoute>
-              }
-            />
             <Route
               path="/dashboard"
               element={
@@ -94,7 +85,7 @@ function App() {
             />
 
             {/* Redireccionamiento por defecto */}
-            <Route path="/" element={<Navigate to="/hoy" />} />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </WorkspaceProvider>
