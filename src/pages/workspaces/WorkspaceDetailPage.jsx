@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Spinner, Alert, Button, Badge, Form, Table } from 'react-bootstrap';
-import { FiArrowLeft, FiUsers, FiUserPlus, FiTrash2, FiEdit2, FiShield, FiUser } from 'react-icons/fi';
+import { FiArrowLeft, FiUsers, FiUserPlus, FiTrash2, FiEdit2, FiShield, FiUser, FiActivity } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import WorkspaceForm from '../../components/workspaces/WorkspaceForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -153,9 +153,14 @@ const WorkspaceDetailPage = () => {
           </div>
         </div>
         {isOwnerOrAdmin && !workspace.isPersonal && (
-          <Button variant="outline-primary" size="sm" onClick={() => setShowEditModal(true)}>
-            <FiEdit2 className="me-1" /> Editar
-          </Button>
+          <div className="d-flex gap-2">
+            <Button variant="outline-secondary" size="sm" onClick={() => navigate(`/workspaces/${id}/actividad`)}>
+              <FiActivity className="me-1" /> Actividad
+            </Button>
+            <Button variant="outline-primary" size="sm" onClick={() => setShowEditModal(true)}>
+              <FiEdit2 className="me-1" /> Editar
+            </Button>
+          </div>
         )}
       </div>
 

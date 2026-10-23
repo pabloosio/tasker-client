@@ -1,8 +1,9 @@
 import { Navbar as BSNavbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut, FiUser, FiSunrise, FiHome, FiFolder, FiBarChart2, FiBriefcase, FiShield } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiSunrise, FiHome, FiFolder, FiBarChart2, FiBriefcase, FiShield, FiCheckSquare, FiActivity } from 'react-icons/fi';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
+import GlobalSearch from './GlobalSearch';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
@@ -52,6 +53,14 @@ const Navbar = () => {
           </Nav.Link>
           <Nav.Link
             as={Link}
+            to="/mis-tareas"
+            className={`nav-link-custom ${isActive('/mis-tareas') ? 'active' : ''}`}
+          >
+            <FiCheckSquare className="nav-icon" />
+            <span> Mis tareas</span>
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
             to="/categories"
             className={`nav-link-custom ${isActive('/categories') ? 'active' : ''}`}
           >
@@ -77,6 +86,7 @@ const Navbar = () => {
         </Nav>
 
         <Nav className="nav-end">
+          <GlobalSearch />
           <NavDropdown
             title={
               <div className="user-dropdown-toggle">
@@ -100,6 +110,10 @@ const Navbar = () => {
                 <NavDropdown.Item as={Link} to="/admin/users" className="dropdown-item-custom">
                   <FiShield className="me-2" />
                   Panel de Admin
+                </NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/admin/auditoria" className="dropdown-item-custom">
+                  <FiActivity className="me-2" />
+                  Auditoría
                 </NavDropdown.Item>
               </>
             )}

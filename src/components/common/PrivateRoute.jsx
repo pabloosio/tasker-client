@@ -1,9 +1,10 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Spinner, Container } from 'react-bootstrap';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -15,7 +16,8 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  return user ? children : <Navigate to="/login" />;
+  // Recordar a dónde iba (ej. un enlace /t/000142) para regresar después del login
+  return user ? children : <Navigate to="/login" state={{ from: location.pathname + location.search }} />;
 };
 
 export default PrivateRoute;

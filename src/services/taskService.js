@@ -25,9 +25,27 @@ const taskService = {
     return response.data;
   },
 
-  // Actualizar estado de tarea
-  updateTaskStatus: async (id, status) => {
-    const response = await api.patch(`/tasks/${id}/status`, { status });
+  // Tablero Kanban completo (sin tope de paginación) + conteo de archivadas y límites WIP
+  getBoard: async (workspaceId) => {
+    const response = await api.get('/tasks/board', { params: { workspaceId } });
+    return response.data;
+  },
+
+  // Obtener tarea por su número legible (142, #142 o #000142)
+  getTaskByNumber: async (number) => {
+    const response = await api.get(`/tasks/by-number/${encodeURIComponent(number)}`);
+    return response.data;
+  },
+
+  // Tareas asignadas al usuario en todos sus tableros
+  getMyTasks: async () => {
+    const response = await api.get('/tasks/mine');
+    return response.data;
+  },
+
+  // Actualizar estado (y opcionalmente la posición dentro de la columna)
+  updateTaskStatus: async (id, status, position) => {
+    const response = await api.patch(`/tasks/${id}/status`, position === undefined ? { status } : { status, position });
     return response. data;
   },
 

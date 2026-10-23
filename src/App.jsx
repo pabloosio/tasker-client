@@ -11,6 +11,10 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import MyTasksPage from './pages/my-tasks/MyTasksPage';
+import ProfilePage from './pages/profile/ProfilePage';
+import TaskLinkPage from './pages/tasks/TaskLinkPage';
+import ActivityPage from './pages/activity/ActivityPage';
 import CategoriesPage from './pages/categories/CategoriesPage';
 import ExportPage from './pages/export/ExportPage';
 import WorkspacesPage from './pages/workspaces/WorkspacesPage';
@@ -44,6 +48,30 @@ function App() {
               }
             />
             <Route
+              path="/t/:number"
+              element={
+                <PrivateRoute>
+                  <TaskLinkPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/mis-tareas"
+              element={
+                <PrivateRoute>
+                  <MyTasksPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/categories"
               element={
                 <PrivateRoute>
@@ -73,6 +101,22 @@ function App() {
                 <PrivateRoute>
                   <WorkspaceDetailPage />
                 </PrivateRoute>
+              }
+            />
+            <Route
+              path="/workspaces/:id/actividad"
+              element={
+                <PrivateRoute>
+                  <ActivityPage scope="workspace" />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/auditoria"
+              element={
+                <AdminRoute>
+                  <ActivityPage scope="global" />
+                </AdminRoute>
               }
             />
             <Route

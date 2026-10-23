@@ -42,8 +42,10 @@ const monthLabel = (iso) => { const d = new Date(iso + 'T12:00:00'); return `${M
 
 // ── Constantes visuales ───────────────────────────────────────────────────────
 const STATUS_MAP = {
-  PENDING:     { label: 'Pendiente',    bg: '#FEF3C7', color: '#92400E' },
+  BACKLOG:     { label: 'Backlog',      bg: '#F1F5F9', color: '#475569' },
+  PENDING:     { label: 'Por hacer',    bg: '#FEF3C7', color: '#92400E' },
   IN_PROGRESS: { label: 'En Progreso',  bg: '#DBEAFE', color: '#1E40AF' },
+  IN_REVIEW:   { label: 'En Revisión',  bg: '#EDE9FE', color: '#5B21B6' },
   COMPLETED:   { label: 'Completada',   bg: '#D1FAE5', color: '#065F46' }
 };
 const PRIORITY_MAP = { HIGH: '#EF4444', MEDIUM: '#F59E0B', LOW: '#9CA3AF' };
@@ -66,8 +68,10 @@ const ReportPreview = ({ data, loading }) => {
   );
 
   const STATUS_TEXT = {
-    PENDING:     { label: 'Pendiente',   color: '#92400E' },
+    BACKLOG:     { label: 'Backlog',     color: '#475569' },
+    PENDING:     { label: 'Por hacer',   color: '#92400E' },
     IN_PROGRESS: { label: 'En Progreso', color: '#1E40AF' },
+    IN_REVIEW:   { label: 'En Revisión', color: '#5B21B6' },
     COMPLETED:   { label: 'Completada',  color: '#166534' }
   };
 
@@ -90,7 +94,9 @@ const ReportPreview = ({ data, loading }) => {
         <span><strong style={{ color: '#111827' }}>{data.summary.total}</strong> total</span>
         <span><strong style={{ color: '#166534' }}>{data.summary.completed}</strong> completadas</span>
         <span><strong style={{ color: '#1E40AF' }}>{data.summary.inProgress}</strong> en progreso</span>
-        <span><strong style={{ color: '#92400E' }}>{data.summary.pending}</strong> pendientes</span>
+        <span><strong style={{ color: '#5B21B6' }}>{data.summary.inReview}</strong> en revisión</span>
+        <span><strong style={{ color: '#92400E' }}>{data.summary.pending}</strong> por hacer</span>
+        <span><strong style={{ color: '#475569' }}>{data.summary.backlog}</strong> en backlog</span>
       </div>
 
       {data.summary.total === 0 && (
@@ -114,7 +120,7 @@ const ReportPreview = ({ data, loading }) => {
           </div>
 
           {/* Tareas */}
-          {group.tasks.map((task, idx) => {
+          {group.tasks.map((task) => {
             const st = STATUS_TEXT[task.status] || STATUS_TEXT.PENDING;
             return (
               <div key={task.id} style={{ padding: '12px 20px 12px 24px', borderBottom: '1px solid #E5E7EB' }}>
@@ -122,7 +128,10 @@ const ReportPreview = ({ data, loading }) => {
                 {/* Título + estado (solo texto) */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, marginBottom: 4 }}>
                   <span style={{ fontWeight: 600, color: '#111827', fontSize: 13 }}>
-                    {idx + 1}. {task.title}
+                    <span style={{ color: '#6B7280', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', marginRight: 8 }}>
+                      {task.key}
+                    </span>
+                    {task.title}
                   </span>
                   <span style={{ fontSize: 11, color: st.color, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
                     {st.label}

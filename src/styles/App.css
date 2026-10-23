@@ -969,6 +969,93 @@ main {
   opacity: 0.9;
 }
 
+/* ========================================
+   Filtros rápidos e indicadores del tablero
+   ======================================== */
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.quick-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--gray-300);
+  background: #fff;
+  color: var(--gray-700);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.quick-filter-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.quick-filter-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.quick-filter-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: none;
+  color: var(--gray-600);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.25rem;
+}
+
+.quick-filter-clear:hover {
+  color: var(--gray-800);
+  text-decoration: underline;
+}
+
+.kanban-task-card.is-overdue {
+  border-left: 4px solid #dc3545 !important;
+}
+
+.task-overdue-date,
+.task-overdue-label {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.task-stale-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.35rem;
+  background: #fff4e5;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.kanban-column-header .badge.wip-exceeded {
+  background: #dc3545 !important;
+  color: #fff !important;
+  border-color: #dc3545;
+}
+
+.kanban-column-header .badge.wip-editable {
+  cursor: pointer;
+}
+
+.kanban-column-header .badge.wip-editable:hover {
+  outline: 2px solid color-mix(in srgb, var(--kanban-accent) 45%, transparent);
+}
+
 .kanban-tasks.dragging-over {
   background: var(--primary-pastel);
   border-radius: 0.5rem;
@@ -984,6 +1071,20 @@ main {
 @media (max-width: 992px) {
   .kanban-tasks {
     max-height: calc(100vh - 500px);
+  }
+}
+
+/* Escritorio (5 columnas en una fila): las columnas usan todo el alto visible.
+   --kanban-top lo calcula DashboardPage según dónde empieza el tablero. */
+@media (min-width: 1200px) {
+  .kanban-board .kanban-column {
+    height: calc(100dvh - var(--kanban-top, 300px) - 1.5rem);
+    min-height: 320px;
+  }
+
+  .kanban-board .kanban-tasks {
+    max-height: none;
+    min-height: 0;
   }
 }
 
@@ -1133,4 +1234,226 @@ main {
   color: rgba(120, 90, 50, 0.5);
   font-size: 0.75rem;
   letter-spacing: 0.02em;
+}
+
+/* ========================================
+   Mis tareas
+   ======================================== */
+.my-tasks-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--gray-600);
+}
+
+.my-tasks-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.my-tasks-group.is-done .my-task-title {
+  text-decoration: line-through;
+  color: var(--gray-600);
+}
+
+.my-task-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--priority-color);
+  border-bottom: 1px solid var(--gray-300);
+}
+
+.my-task-row:last-child {
+  border-bottom: none;
+}
+
+.my-task-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-task-title {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.my-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.9rem;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--gray-600);
+}
+
+.my-task-board {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.my-task-board:hover {
+  text-decoration: underline;
+}
+
+.my-task-status {
+  width: 150px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 576px) {
+  .my-task-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .my-task-status {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   Perfil
+   ======================================== */
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.profile-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  height: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+  color: inherit;
+  text-decoration: none;
+}
+
+a.profile-stat:hover {
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.12);
+}
+
+.profile-stat-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.profile-stat strong {
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--gray-800);
+}
+
+.profile-stat span {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+}
+
+.profile-pin {
+  border: none;
+  background: none;
+  margin-right: 0.5rem;
+  color: var(--gray-300);
+  font-size: 1.05rem;
+  vertical-align: middle;
+}
+
+.profile-pin:hover {
+  color: #f59e0b;
+}
+
+.profile-pin.active {
+  color: #f59e0b;
+}
+
+.profile-pin.active svg {
+  fill: currentColor;
+}
+
+/* ========================================
+   ID de tarea (#000142)
+   ======================================== */
+.task-key {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--gray-600);
+}
+
+.task-ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  vertical-align: middle;
+}
+
+.task-ref .task-key {
+  font-size: 0.8rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.35rem;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--gray-700);
+}
+
+.task-ref-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--gray-600);
+}
+
+.task-ref-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--gray-800);
+}
+
+.task-ref-copied {
+  margin-left: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #198754;
 }

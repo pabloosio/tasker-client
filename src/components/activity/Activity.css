@@ -1,0 +1,147 @@
+/* Línea de tiempo del historial */
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.activity-item {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0 0 1rem 0;
+}
+
+/* Línea vertical que une los puntos */
+.activity-item::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 14px;
+  bottom: 0;
+  width: 2px;
+  background: var(--gray-300, #dce3ea);
+}
+
+.activity-item:last-child::before {
+  display: none;
+}
+
+.activity-dot {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--gray-300, #dce3ea);
+  background: var(--gray-600, #6b7685);
+  z-index: 1;
+}
+
+.tone-create .activity-dot { background: #0d6efd; }
+.tone-status .activity-dot { background: #0dcaf0; }
+.tone-assign .activity-dot { background: #8b5cf6; }
+.tone-edit .activity-dot { background: #94a3b8; }
+.tone-done .activity-dot { background: #198754; }
+.tone-warn .activity-dot { background: #f59e0b; }
+.tone-danger .activity-dot { background: #dc3545; }
+.tone-board .activity-dot { background: #6f63c6; }
+
+.activity-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-text {
+  font-size: 0.875rem;
+  color: var(--gray-700, #4a5462);
+  line-height: 1.4;
+}
+
+.activity-text strong {
+  color: var(--gray-800, #2d3540);
+}
+
+.activity-task {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.activity-task:hover {
+  text-decoration: underline;
+}
+
+.activity-task.is-plain {
+  color: var(--gray-800, #2d3540);
+}
+
+.activity-task.is-deleted {
+  color: var(--gray-600, #6b7685);
+  text-decoration: line-through;
+}
+
+.activity-details {
+  margin: 0.2rem 0 0;
+  padding-left: 1rem;
+  font-size: 0.78rem;
+  color: var(--gray-600, #6b7685);
+}
+
+.activity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  color: var(--gray-600, #6b7685);
+}
+
+.activity-board {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--primary);
+  font-size: inherit;
+}
+
+.activity-board:hover {
+  text-decoration: underline;
+}
+
+/* Sección plegable dentro de la tarea */
+.task-activity {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 0.75rem;
+}
+
+.task-activity-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gray-700, #4a5462);
+}
+
+.task-activity-count {
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 0.7rem;
+}
+
+.task-activity-content {
+  margin-top: 0.75rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}

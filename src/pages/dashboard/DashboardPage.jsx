@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Row, Col, Card, Spinner, Alert, Badge, ProgressBar, Form, Offcanvas } from 'react-bootstrap';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { Row, Col, Card, Spinner, Alert, Badge, ProgressBar, Form, Offcanvas, OverlayTrigger, Popover } from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiCheckSquare, FiBarChart2 } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiCheckSquare, FiBarChart2, FiInbox, FiEye, FiLock, FiUser, FiUserX, FiAlertCircle, FiArrowUp, FiAlertTriangle, FiArchive } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import TaskForm from '../../components/tasks/TaskForm';
 import TaskViewModal from '../../components/tasks/TaskViewModal';
@@ -11,8 +11,57 @@ import taskService from '../../services/taskService';
 import categoryService from '../../services/categoryService';
 import workspaceService from '../../services/workspaceService';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { humanizeDate, formatDate } from '../../utils/dateUtils';
+import { formatTaskKey } from '../../utils/taskKey';
+
+// Flujo de 5 estados: Backlog → Por hacer → En Progreso → En Revisión → Completada
+const STATUS_COLUMNS = [
+  { status: 'backlog',     title: 'Backlog',     icon: FiInbox,       color: '#94a3b8' },
+  { status: 'pending',     title: 'Por hacer',   icon: FiClock,       color: '#ffc107' },
+  { status: 'in_progress', title: 'En Progreso', icon: FiLoader,      color: '#0dcaf0' },
+  { status: 'in_review',   title: 'En Revisión', icon: FiEye,         color: '#8b5cf6' },
+  { status: 'completed',   title: 'Completada',  icon: FiCheckCircle, color: '#198754' }
+];
+
+// Columnas a las que se les puede poner límite WIP
+const WIP_COLUMNS = ['pending', 'in_progress', 'in_review'];
+// Una tarjeta activa sin moverse por N días se marca como estancada
+const STALE_DAYS = 5;
+
+const QUICK_FILTERS = [
+  { key: 'mine',       label: 'Mis tareas',     icon: FiUser },
+  { key: 'overdue',    label: 'Vencidas',       icon: FiAlertCircle },
+  { key: 'high',       label: 'Alta prioridad', icon: FiArrowUp },
+  { key: 'unassigned', label: 'Sin asignar',    icon: FiUserX }
+];
+const QUICK_FILTERS_KEY = 'boardQuickFilters';
+
+const loadQuickFilters = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(QUICK_FILTERS_KEY));
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+};
+
+const todayIso = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const daysSince = (date) => Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+
+const isOverdue = (task) => !!task.dueDate && task.status !== 'completed' && task.dueDate < todayIso();
+const staleDays = (task) => {
+  if (!['pending', 'in_progress', 'in_review'].includes(task.status)) return 0;
+  const days = daysSince(task.statusUpdatedAt || task.createdAt);
+  return days >= STALE_DAYS ? days : 0;
+};
+
+const byPosition = (a, b) => (a.position ?? 0) - (b.position ?? 0);
+const byCompletedDesc = (a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0);
 
 const DashboardPage = () => {
   const { currentWorkspace, isViewer } = useWorkspace();
@@ -33,6 +82,27 @@ const DashboardPage = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
+  // Filtros rápidos (chips sobre el tablero), recordados por navegador
+  const [quickFilters, setQuickFilters] = useState(loadQuickFilters);
+  const toggleQuickFilter = (key) => {
+    setQuickFilters(prev => {
+      const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+      try { localStorage.setItem(QUICK_FILTERS_KEY, JSON.stringify(next)); } catch { /* sin storage */ }
+      return next;
+    });
+  };
+
+  // Datos del tablero: completadas archivadas y límites WIP por columna
+  const [archivedCount, setArchivedCount] = useState(0);
+  const [archiveDays, setArchiveDays] = useState(30);
+  const [wipLimits, setWipLimits] = useState({});
+  // Tablero cuyas tareas están cargadas (evita abrir una tarea con datos del tablero anterior)
+  const [loadedWorkspaceId, setLoadedWorkspaceId] = useState(null);
+
+  // ?task=ID (desde el buscador): abrir esa tarea cuando el tablero termine de cargar
+  const [searchParams, setSearchParams] = useSearchParams();
+  const taskParam = searchParams.get('task');
+
   // Task modals
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
@@ -50,13 +120,27 @@ const DashboardPage = () => {
   const [activeColumn, setActiveColumn] = useState(0);
   const kanbanScrollRef = useRef(null);
 
+  // Alto disponible: las columnas llegan hasta el borde inferior de la ventana (ver .kanban-board en App.css)
+  const kanbanBoardRef = useRef(null);
+  const hasTasks = Array.isArray(tasks) && tasks.length > 0;
+  useLayoutEffect(() => {
+    const el = kanbanBoardRef.current;
+    if (!el) return;
+    const updateTop = () => {
+      el.style.setProperty('--kanban-top', `${el.getBoundingClientRect().top + window.scrollY}px`);
+    };
+    updateTop();
+    window.addEventListener('resize', updateTop);
+    return () => window.removeEventListener('resize', updateTop);
+  }, [loading, hasTasks, error, isViewer]);
+
   const handleKanbanScroll = useCallback(() => {
     const el = kanbanScrollRef.current;
     if (!el) return;
     const scrollLeft = el.scrollLeft;
     const columnWidth = el.firstElementChild?.offsetWidth || 1;
     const index = Math.round(scrollLeft / columnWidth);
-    setActiveColumn(Math.min(index, 2));
+    setActiveColumn(Math.min(index, STATUS_COLUMNS.length - 1));
   }, []);
 
   const scrollToColumn = useCallback((index) => {
@@ -84,6 +168,23 @@ const DashboardPage = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!taskParam || loading || loadedWorkspaceId !== currentWorkspace?.id) return;
+    const clearParam = () => setSearchParams({}, { replace: true });
+
+    const onBoard = tasks.find(t => t.id === taskParam);
+    if (onBoard) {
+      handleEditTask(onBoard);
+      clearParam();
+      return;
+    }
+    // Puede estar archivada (completada hace más de 30 días): pedirla directo
+    taskService.getTaskById(taskParam)
+      .then(response => handleEditTask(normalizeTask(response.data || response)))
+      .catch(() => setError('No se pudo abrir la tarea'))
+      .finally(clearParam);
+  }, [taskParam, loading, loadedWorkspaceId, currentWorkspace?.id]);
+
   // Normalizar status y priority a minúsculas
   const normalizeTask = (task) => ({
     ...task,
@@ -100,7 +201,7 @@ const DashboardPage = () => {
       const promises = [
         taskService.getStats(wsParams),
         categoryService.getCategories(wsParams),
-        taskService.getTasks({ limit: 100, ...wsParams })
+        taskService.getBoard(currentWorkspace.id)
       ];
 
       // Si no es personal, traer miembros del workspace
@@ -122,16 +223,15 @@ const DashboardPage = () => {
         setMembers([]);
       }
 
-      let tasksData = [];
-      if (tasksResponse.data) {
-        if (Array.isArray(tasksResponse.data)) {
-          tasksData = tasksResponse.data;
-        } else if (tasksResponse.data.tasks && Array.isArray(tasksResponse.data.tasks)) {
-          tasksData = tasksResponse.data.tasks;
-        }
-      }
-      const normalizedTasks = tasksData.map(normalizeTask);
-      setTasks(normalizedTasks);
+      const board = tasksResponse.data || {};
+      setTasks((Array.isArray(board.tasks) ? board.tasks : []).map(normalizeTask));
+      setLoadedWorkspaceId(currentWorkspace.id);
+      setArchivedCount(board.archivedCount || 0);
+      setArchiveDays(board.archiveDays || 30);
+      // La API guarda los límites con el status en mayúsculas
+      setWipLimits(Object.fromEntries(
+        Object.entries(board.wipLimits || {}).map(([status, limit]) => [status.toLowerCase(), limit])
+      ));
     } catch (err) {
       setError(err.response?.data?.message || 'Error al cargar datos');
     } finally {
@@ -215,7 +315,24 @@ const DashboardPage = () => {
     setTaskToEdit(null);
   };
 
-  // Drag & Drop handler
+  // Permisos por tarea (mismo criterio que la API): quien la creó, la persona asignada
+  // y OWNER/ADMIN del tablero pueden moverla; borrar excluye a la persona asignada.
+  const isManager = currentWorkspace?.isPersonal || ['OWNER', 'ADMIN'].includes(currentWorkspace?.myRole);
+  const canDeleteTask = (task) => !isViewer && (isManager || task.userId === user?.id);
+  const canEditTask = (task) =>
+    canDeleteTask(task) || (!isViewer && (task.assignedTo || task.assignee?.id) === user?.id);
+
+  // Posición para soltar una tarjeta en `index` de una columna (punto medio entre vecinas)
+  const positionAt = (columnTasks, index) => {
+    const before = columnTasks[index - 1];
+    const after = columnTasks[index];
+    if (before && after) return (before.position + after.position) / 2;
+    if (before) return before.position + 1;
+    if (after) return after.position - 1;
+    return 0;
+  };
+
+  // Drag & Drop handler: cambiar de columna y/o reordenar dentro de la columna
   const handleDragEnd = async (result) => {
     if (isViewer) return;
     const { destination, source, draggableId } = result;
@@ -224,66 +341,78 @@ const DashboardPage = () => {
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-    const allowedStatuses = ['pending', 'in_progress', 'completed'];
-
-    // Si es dentro de la misma columna, no cambiamos status ni llamamos API
-    if (destination.droppableId === source.droppableId) return;
-
+    const allowedStatuses = STATUS_COLUMNS.map(c => c.status);
     const newStatus = destination.droppableId;
     const oldStatus = source.droppableId;
+    const sameColumn = newStatus === oldStatus;
 
-    // Solo permitir mover entre las 3 columnas conocidas
+    // Solo permitir mover entre las columnas conocidas
     if (!allowedStatuses.includes(newStatus) || !allowedStatuses.includes(oldStatus)) return;
-    const taskId = draggableId;
+    // Las completadas se ordenan por fecha de cierre, no a mano
+    if (sameColumn && newStatus === 'completed') return;
 
-    // Encontrar la tarea
+    const taskId = draggableId;
     const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+    if (!task || !canEditTask(task)) return;
+
+    // Vecinas visibles en la columna destino (sin la tarjeta que se mueve)
+    const destinationTasks = tasksByStatus[newStatus].filter(t => t.id !== taskId);
+    const newPosition = positionAt(destinationTasks, destination.index);
 
     // Actualizar optimistamente el estado local
-    const updatedTask = { ...task, status: newStatus };
+    const updatedTask = { ...task, status: newStatus, position: newPosition };
     setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
 
-    // Actualizar stats optimistamente
-    setStats(prev => ({
-      ...prev,
-      byStatus: {
-        ...prev?.byStatus,
-        [oldStatus]: Math.max((prev?.byStatus?.[oldStatus] || 1) - 1, 0),
-        [newStatus]: (prev?.byStatus?.[newStatus] || 0) + 1
-      }
-    }));
+    if (!sameColumn) {
+      setStats(prev => ({
+        ...prev,
+        byStatus: {
+          ...prev?.byStatus,
+          [oldStatus]: Math.max((prev?.byStatus?.[oldStatus] || 1) - 1, 0),
+          [newStatus]: (prev?.byStatus?.[newStatus] || 0) + 1
+        }
+      }));
+    }
 
     // Llamar al API
     try {
-      const response = await taskService.updateTaskStatus(taskId, newStatus.toUpperCase());
+      const response = await taskService.updateTaskStatus(taskId, newStatus.toUpperCase(), newPosition);
       const serverTask = normalizeTask(response.data || response);
       setTasks(prev => prev.map(t => t.id === taskId ? serverTask : t));
     } catch (err) {
       // Revertir si falla
       setTasks(prev => prev.map(t => t.id === taskId ? task : t));
-      setStats(prev => ({
-        ...prev,
-        byStatus: {
-          ...prev?.byStatus,
-          [oldStatus]: (prev?.byStatus?.[oldStatus] || 0) + 1,
-          [newStatus]: Math.max((prev?.byStatus?.[newStatus] || 1) - 1, 0)
-        }
-      }));
+      if (!sameColumn) {
+        setStats(prev => ({
+          ...prev,
+          byStatus: {
+            ...prev?.byStatus,
+            [oldStatus]: (prev?.byStatus?.[oldStatus] || 0) + 1,
+            [newStatus]: Math.max((prev?.byStatus?.[newStatus] || 1) - 1, 0)
+          }
+        }));
+      }
       setError(err.response?.data?.message || 'Error al actualizar el estado');
     }
   };
 
-  // En workspaces compartidos, poner primero las tareas asignadas al usuario actual
-  const sortByAssignee = (taskList) => {
-    if (!user || currentWorkspace?.isPersonal) return taskList;
-    return [...taskList].sort((a, b) => {
-      const aAssignedTo = a.assignedTo || a.assignee?.id;
-      const bAssignedTo = b.assignedTo || b.assignee?.id;
-      const aIsMe = aAssignedTo === user.id ? 0 : 1;
-      const bIsMe = bAssignedTo === user.id ? 0 : 1;
-      return aIsMe - bIsMe;
+  // Límite WIP (solo OWNER/ADMIN). null quita el límite.
+  const handleSaveWipLimit = async (status, value) => {
+    const limit = value === '' || value === null ? null : Math.max(1, parseInt(value, 10) || 1);
+    const previous = wipLimits;
+    setWipLimits(prev => {
+      const next = { ...prev };
+      if (limit === null) delete next[status];
+      else next[status] = limit;
+      return next;
     });
+    document.body.click(); // cerrar el popover
+    try {
+      await workspaceService.updateWipLimits(currentWorkspace.id, { [status.toUpperCase()]: limit });
+    } catch (err) {
+      setWipLimits(previous);
+      setError(err.response?.data?.message || 'Error al guardar el límite');
+    }
   };
 
   // Agrupar tareas por estado
@@ -308,6 +437,16 @@ const DashboardPage = () => {
       if (taskCategoryId !== filters.categoryId) return false;
     }
 
+    // Filtros rápidos
+    // En el tablero personal no hay asignaciones: "Mis tareas" y "Sin asignar" no aplican
+    const assignedId = t.assignedTo || t.assignee?.id || '';
+    if (!currentWorkspace?.isPersonal) {
+      if (quickFilters.includes('mine') && assignedId !== user?.id) return false;
+      if (quickFilters.includes('unassigned') && assignedId) return false;
+    }
+    if (quickFilters.includes('high') && t.priority !== 'high') return false;
+    if (quickFilters.includes('overdue') && !isOverdue(t)) return false;
+
     // Asignación
     if (filters.assignee) {
       const assignedTo = t.assignedTo || t.assignee?.id || '';
@@ -321,14 +460,20 @@ const DashboardPage = () => {
     return true;
   });
 
-  const allCompleted = sortByAssignee(filteredTasks.filter(t => t.status === 'completed'));
+  // Orden manual (position) en cada columna; las completadas, de la más reciente a la más antigua
+  const inColumn = (status) => filteredTasks.filter(t => t.status === status).sort(byPosition);
+  const allCompleted = filteredTasks.filter(t => t.status === 'completed').sort(byCompletedDesc);
   const tasksByStatus = {
-    pending: sortByAssignee(filteredTasks.filter(t => t.status === 'pending')),
-    in_progress: sortByAssignee(filteredTasks.filter(t => t.status === 'in_progress')),
+    backlog: inColumn('backlog'),
+    pending: inColumn('pending'),
+    in_progress: inColumn('in_progress'),
+    in_review: inColumn('in_review'),
     completed: allCompleted.slice(0, completedLimit)
   };
+  // Para WIP se cuenta la columna completa, aunque haya filtros activos
+  const countInColumn = (status) => allTasks.filter(t => t.status === status).length;
 
-  const hasActiveFilters = !!(filters.q.trim() || filters.priority || filters.categoryId || filters.assignee);
+  const hasActiveFilters = !!(filters.q.trim() || filters.priority || filters.categoryId || filters.assignee || quickFilters.length);
   const activeFilterCount =
     (filters.q.trim() ? 1 : 0) +
     (filters.priority ? 1 : 0) +
@@ -360,27 +505,35 @@ const DashboardPage = () => {
   })();
 
   const TaskCard = ({ task, index }) => (
-    <Draggable draggableId={task.id} index={index} isDragDisabled={isViewer}>
+    <Draggable draggableId={task.id} index={index} isDragDisabled={!canEditTask(task)}>
       {(provided, snapshot) => (
         <Card
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`kanban-task-card mb-2 ${snapshot.isDragging ? 'dragging' : ''}`}
+          className={`kanban-task-card mb-2 ${snapshot.isDragging ? 'dragging' : ''} ${isOverdue(task) ? 'is-overdue' : ''}`}
           data-priority={task.priority}
           data-status={task.status}
           onClick={() => handleEditTask(task)}
           style={{
             ...provided.draggableProps.style,
-            cursor: isViewer ? 'pointer' : 'grab'
+            cursor: canEditTask(task) ? 'grab' : 'pointer'
           }}
         >
           <Card.Body className="p-3">
+            <div className="task-key mb-1">{formatTaskKey(task.number)}</div>
             <div className="d-flex justify-content-between align-items-start mb-2">
               <h6 className="task-title mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
                 {task.title}
               </h6>
-              {!isViewer && (
+              {!isViewer && !canEditTask(task) && (
+                <FiLock
+                  size={13}
+                  className="text-muted flex-shrink-0 ms-1"
+                  title="Solo la persona asignada, quien la creó o un administrador pueden moverla"
+                />
+              )}
+              {canEditTask(task) && (
                 <div className="d-flex gap-1">
                   <button
                     className="btn-icon btn-icon-edit btn-sm"
@@ -392,16 +545,18 @@ const DashboardPage = () => {
                   >
                     <FiEdit2 size={14} />
                   </button>
-                  <button
-                    className="btn-icon btn-icon-delete btn-sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setTaskToDelete(task);
-                    }}
-                    title="Eliminar"
-                  >
-                    <FiTrash2 size={14} />
-                  </button>
+                  {canDeleteTask(task) && (
+                    <button
+                      className="btn-icon btn-icon-delete btn-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTaskToDelete(task);
+                      }}
+                      title="Eliminar"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -426,6 +581,20 @@ const DashboardPage = () => {
                 </span>
               )}
             </div>
+
+            {staleDays(task) > 0 && (
+              <div className="task-stale-badge mb-2" title="Lleva varios días sin cambiar de estado">
+                <FiAlertTriangle size={11} />
+                {staleDays(task)} días sin moverse
+              </div>
+            )}
+
+            {!task.assignee && !currentWorkspace?.isPersonal && task.status !== 'completed' && (
+              <div className="d-flex align-items-center gap-1 mb-2 text-muted" style={{ fontSize: '0.75rem' }}>
+                <FiUserX size={12} />
+                Sin asignar
+              </div>
+            )}
 
             {task.assignee && (
               <div className="d-flex align-items-center gap-1 mb-2">
@@ -459,9 +628,10 @@ const DashboardPage = () => {
 
             <div className="task-dates">
               {task.dueDate && (
-                <div className="text-muted" style={{ fontSize: '0.8rem' }}>
+                <div className={isOverdue(task) ? 'task-overdue-date' : 'text-muted'} style={{ fontSize: '0.8rem' }}>
                   <FiCalendar size={12} className="me-1" style={{ display: 'inline' }} />
                   Para: {formatDate(task.dueDate)}
+                  {isOverdue(task) && <span className="task-overdue-label ms-1">· Vencida</span>}
                 </div>
               )}
               {task.status === 'completed' && task.completedAt && (
@@ -482,14 +652,63 @@ const DashboardPage = () => {
     </Draggable>
   );
 
+  // Contador de la columna con límite WIP: "4/3" en rojo si se excede. OWNER/ADMIN lo editan con clic.
+  const WipBadge = ({ status, count }) => {
+    const limit = wipLimits[status];
+    const exceeded = limit && count > limit;
+    const badge = (
+      <Badge
+        bg="secondary"
+        className={`ms-auto ${exceeded ? 'wip-exceeded' : ''} ${isManager && !currentWorkspace?.isPersonal ? 'wip-editable' : ''}`}
+        title={exceeded ? `Límite WIP excedido (${limit})` : limit ? `Límite WIP: ${limit}` : undefined}
+      >
+        {limit ? `${count}/${limit}` : count}
+      </Badge>
+    );
+    if (!isManager || currentWorkspace?.isPersonal) return badge;
+
+    const popover = (
+      <Popover>
+        <Popover.Header as="h6" className="small">Límite de tareas (WIP)</Popover.Header>
+        <Popover.Body>
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSaveWipLimit(status, e.currentTarget.elements.limit.value);
+            }}
+          >
+            <Form.Control name="limit" type="number" min={1} size="sm" defaultValue={limit || ''} placeholder="Sin límite" autoFocus />
+            <div className="d-flex gap-2 mt-2">
+              <button type="submit" className="btn btn-sm btn-primary flex-grow-1">Guardar</button>
+              {limit && (
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => handleSaveWipLimit(status, null)}>
+                  Quitar
+                </button>
+              )}
+            </div>
+          </Form>
+        </Popover.Body>
+      </Popover>
+    );
+    return (
+      <OverlayTrigger trigger="click" placement="bottom" rootClose overlay={popover}>
+        {badge}
+      </OverlayTrigger>
+    );
+  };
+
   const KanbanColumn = ({ status, title, icon: Icon, color, tasks: columnTasks, footer }) => (
-    <Col lg={4} md={6} className="mb-4 mb-lg-0">
+    <Col md={6} lg={4} xl className="mb-4 mb-xl-0">
       <div className="kanban-column" data-status={status} style={{ '--kanban-accent': color }}>
         <div className="kanban-column-header">
           <div className="d-flex align-items-center gap-2 mb-2">
             <Icon size={18} style={{ color }} />
             <span className="kanban-column-title">{title}</span>
-            <Badge bg="secondary" className="ms-auto">{columnTasks.length}</Badge>
+            {WIP_COLUMNS.includes(status) ? (
+              <WipBadge status={status} count={countInColumn(status)} />
+            ) : (
+              <Badge bg="secondary" className="ms-auto">{columnTasks.length}</Badge>
+            )}
           </div>
         </div>
 
@@ -553,27 +772,15 @@ const DashboardPage = () => {
               <span className="stat-card-label">Total</span>
             </div>
           </div>
-          <div className="stat-card-mini">
-            <FiClock className="stat-card-icon" style={{ color: '#ffc107' }} />
-            <div className="stat-info">
-              <span className="stat-card-number">{stats?.byStatus?.pending || 0}</span>
-              <span className="stat-card-label">Pendientes</span>
+          {STATUS_COLUMNS.map(({ status, title, icon: Icon, color }) => (
+            <div className="stat-card-mini" key={status}>
+              <Icon className="stat-card-icon" style={{ color }} />
+              <div className="stat-info">
+                <span className="stat-card-number">{stats?.byStatus?.[status] || 0}</span>
+                <span className="stat-card-label">{title}</span>
+              </div>
             </div>
-          </div>
-          <div className="stat-card-mini">
-            <FiLoader className="stat-card-icon" style={{ color: '#0dcaf0' }} />
-            <div className="stat-info">
-              <span className="stat-card-number">{stats?.byStatus?.in_progress || 0}</span>
-              <span className="stat-card-label">En Progreso</span>
-            </div>
-          </div>
-          <div className="stat-card-mini">
-            <FiCheckCircle className="stat-card-icon" style={{ color: '#198754' }} />
-            <div className="stat-info">
-              <span className="stat-card-number">{stats?.byStatus?.completed || 0}</span>
-              <span className="stat-card-label">Completadas</span>
-            </div>
-          </div>
+          ))}
         </div>
         <div className="stats-actions d-flex align-items-center gap-2 flex-wrap justify-content-end">
           <button
@@ -623,6 +830,32 @@ const DashboardPage = () => {
         </div>
       </div>
 
+      {/* Filtros rápidos */}
+      <div className="quick-filters mb-3">
+        {QUICK_FILTERS
+          .filter(f => !(currentWorkspace?.isPersonal && (f.key === 'mine' || f.key === 'unassigned')))
+          .map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              className={`quick-filter-chip ${quickFilters.includes(key) ? 'active' : ''}`}
+              onClick={() => toggleQuickFilter(key)}
+              aria-pressed={quickFilters.includes(key)}
+            >
+              <Icon size={13} />
+              {label}
+            </button>
+          ))}
+        {quickFilters.length > 0 && (
+          <button type="button" className="quick-filter-clear" onClick={() => {
+            setQuickFilters([]);
+            try { localStorage.removeItem(QUICK_FILTERS_KEY); } catch { /* sin storage */ }
+          }}>
+            <FiX size={13} /> Limpiar
+          </button>
+        )}
+      </div>
+
       {/* Kanban Board con Drag & Drop */}
       {!Array.isArray(tasks) || tasks.length === 0 ? (
         <Row>
@@ -638,29 +871,25 @@ const DashboardPage = () => {
         </Row>
       ) : (
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="kanban-board">
+          <div className="kanban-board" ref={kanbanBoardRef}>
             <Row ref={kanbanScrollRef} onScroll={handleKanbanScroll}>
-              <KanbanColumn
-                status="pending"
-                title="Pendiente"
-                icon={FiClock}
-                color="#ffc107"
-                tasks={tasksByStatus.pending}
-              />
-              <KanbanColumn
-                status="in_progress"
-                title="En Progreso"
-                icon={FiLoader}
-                color="#0dcaf0"
-                tasks={tasksByStatus.in_progress}
-              />
+              {STATUS_COLUMNS.filter(c => c.status !== 'completed').map(({ status, title, icon, color }) => (
+                <KanbanColumn
+                  key={status}
+                  status={status}
+                  title={title}
+                  icon={icon}
+                  color={color}
+                  tasks={tasksByStatus[status]}
+                />
+              ))}
               <KanbanColumn
                 status="completed"
                 title="Completada"
                 icon={FiCheckCircle}
                 color="#198754"
                 tasks={tasksByStatus.completed}
-                footer={allCompleted.length > completedLimit ? (
+                footer={<>{allCompleted.length > completedLimit ? (
                   <div className="text-center py-2">
                     <div className="d-flex gap-2 justify-content-center flex-wrap">
                       {[20, 30, 40, 100].filter(n => n > completedLimit && n <= allCompleted.length).slice(0, 2).map(n => (
@@ -688,10 +917,16 @@ const DashboardPage = () => {
                     </p>
                   </div>
                 ) : null}
+                {archivedCount > 0 && (
+                  <p className="text-muted text-center mb-0 mt-1" style={{ fontSize: '0.7rem' }}>
+                    <FiArchive size={11} className="me-1" />
+                    {archivedCount} completadas hace más de {archiveDays} días · <Link to="/export">ver en Reportes</Link>
+                  </p>
+                )}</>}
               />
             </Row>
             <div className="kanban-dots">
-              {['Pendiente', 'En Progreso', 'Completada'].map((label, i) => (
+              {STATUS_COLUMNS.map(({ title: label }, i) => (
                 <button
                   key={label}
                   className={`kanban-dot ${activeColumn === i ? 'active' : ''}`}
@@ -790,7 +1025,7 @@ const DashboardPage = () => {
       </Offcanvas>
 
       {/* Modals */}
-      {isViewer ? (
+      {isViewer || (taskToEdit && !canEditTask(taskToEdit)) ? (
         <TaskViewModal
           show={showTaskModal}
           onHide={handleCloseTaskModal}
@@ -815,7 +1050,7 @@ const DashboardPage = () => {
         onHide={() => setTaskToDelete(null)}
         onConfirm={handleDeleteTask}
         title="Eliminar tarea"
-        message={`¿Estás seguro de eliminar la tarea "${taskToDelete?.title}"? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de eliminar la tarea ${formatTaskKey(taskToDelete?.number)} "${taskToDelete?.title}"? Esta acción no se puede deshacer.`}
         confirmText="Eliminar"
         variant="danger"
         loading={deletingTask}

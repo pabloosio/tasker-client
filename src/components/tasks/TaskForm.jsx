@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Modal, Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
-import { FiCheckSquare, FiEdit2, FiClock, FiLoader, FiCheckCircle, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiCheckSquare, FiEdit2, FiClock, FiLoader, FiCheckCircle, FiPlus, FiTrash2, FiInbox, FiEye } from 'react-icons/fi';
 import taskService from '../../services/taskService';
 import checklistService from '../../services/checklistService';
 import TaskChecklist from './TaskChecklist';
 import CategoryForm from '../categories/CategoryForm';
+import TaskReference from './TaskReference';
+import TaskActivity from '../activity/TaskActivity';
+import { useWorkspace } from '../../context/WorkspaceContext';
 import './TaskChecklist.css';
 
 const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, categories = [], workspaceId, workspaceMembers = [], onWarning }) => {
@@ -21,6 +24,10 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const descRef = useRef(null);
+
+  // Solo OWNER/ADMIN del tablero pueden crear categorías (la API lo valida)
+  const { currentWorkspace } = useWorkspace();
+  const canManageCategories = ['OWNER', 'ADMIN'].includes(currentWorkspace?.myRole);
 
   // Categorías locales (se puede agregar una nueva sin cerrar el form)
   const [localCategories, setLocalCategories] = useState(categories);
@@ -39,8 +46,10 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
   ];
 
   const statuses = [
-    { value: 'pending', label: 'Pendiente', color: '#ffc107', icon: FiClock },
+    { value: 'backlog', label: 'Backlog', color: '#94a3b8', icon: FiInbox },
+    { value: 'pending', label: 'Por hacer', color: '#ffc107', icon: FiClock },
     { value: 'in_progress', label: 'En Progreso', color: '#0dcaf0', icon: FiLoader },
+    { value: 'in_review', label: 'En Revisión', color: '#8b5cf6', icon: FiEye },
     { value: 'completed', label: 'Completada', color: '#198754', icon: FiCheckCircle }
   ];
 
@@ -244,6 +253,7 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
             {isEditing ? <FiEdit2 /> : <FiCheckSquare />}
           </div>
           {isEditing ? 'Editar Tarea' : 'Nueva Tarea'}
+          {isEditing && <TaskReference number={taskToEdit?.number} title={taskToEdit?.title} className="ms-2" />}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -376,16 +386,18 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
               <Form.Group className="mb-3">
                 <div className="d-flex justify-content-between align-items-center mb-1">
                   <Form.Label className="mb-0">Categoría *</Form.Label>
-                  <button
-                    type="button"
-                    className="btn btn-link btn-sm p-0 text-decoration-none"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={() => setShowCategoryModal(true)}
-                    title="Crear nueva categoría sin salir"
-                  >
-                    <FiPlus size={12} className="me-1" />
-                    Nueva
-                  </button>
+                  {canManageCategories && (
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0 text-decoration-none"
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={() => setShowCategoryModal(true)}
+                      title="Crear nueva categoría sin salir"
+                    >
+                      <FiPlus size={12} className="me-1" />
+                      Nueva
+                    </button>
+                  )}
                 </div>
                 <Form.Select
                   name="categoryId"
@@ -500,6 +512,10 @@ const TaskForm = ({ show, onHide, onTaskCreated, onTaskUpdated, taskToEdit, cate
 
           {isEditing && taskToEdit?.id && (
             <TaskChecklist taskId={taskToEdit.id} />
+          )}
+
+          {isEditing && taskToEdit?.id && (
+            <TaskActivity key={taskToEdit.id} taskId={taskToEdit.id} />
           )}
 
           <div className="d-flex gap-2 mt-4">

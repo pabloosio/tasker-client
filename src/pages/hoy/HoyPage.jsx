@@ -169,8 +169,9 @@ const HoyPage = () => {
     setTodayTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
     try {
       await taskService.updateTaskStatus(task.id, newStatus);
-    } catch {
-      fetchTasks();
+    } catch (err) {
+      fetchTasks(); // limpia el error al recargar, por eso va antes
+      setError(err.response?.data?.message || 'No se pudo actualizar la tarea.');
     }
   };
 
@@ -180,8 +181,9 @@ const HoyPage = () => {
     setOverdueTasks(prev => prev.filter(t => t.id !== task.id));
     try {
       await taskService.updateTask(task.id, { ...task, dueDate: tom, categoryId: task.category?.id || null });
-    } catch {
-      fetchTasks();
+    } catch (err) {
+      fetchTasks(); // limpia el error al recargar, por eso va antes
+      setError(err.response?.data?.message || 'No se pudo actualizar la tarea.');
     }
   };
 
@@ -191,8 +193,9 @@ const HoyPage = () => {
     setTodayTasks(prev => [...prev, { ...task, dueDate: t }]);
     try {
       await taskService.updateTask(task.id, { ...task, dueDate: t, categoryId: task.category?.id || null });
-    } catch {
-      fetchTasks();
+    } catch (err) {
+      fetchTasks(); // limpia el error al recargar, por eso va antes
+      setError(err.response?.data?.message || 'No se pudo actualizar la tarea.');
     }
   };
 

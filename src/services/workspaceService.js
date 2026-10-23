@@ -26,6 +26,11 @@ const workspaceService = {
     return response.data;
   },
 
+  updateWipLimits: async (workspaceId, wipLimits) => {
+    const response = await api.patch(`/workspaces/${workspaceId}/wip-limits`, { wipLimits });
+    return response.data;
+  },
+
   getMembers: async (workspaceId) => {
     const response = await api.get(`/workspaces/${workspaceId}/members`);
     return response.data;

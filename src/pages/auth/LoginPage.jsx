@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { FiAlertCircle, FiEye, FiEyeOff } from 'react-icons/fi';
 import { Helmet } from 'react-helmet-async';
@@ -19,6 +19,11 @@ const LoginPage = () => {
   const errorRef = useRef(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Solo rutas internas (evita redirecciones a otros sitios)
+  const from = typeof location.state?.from === 'string' && location.state.from.startsWith('/') && !location.state.from.startsWith('//')
+    ? location.state.from
+    : '/dashboard';
 
   useEffect(() => {
     if (error && errorRef.current) {
@@ -38,7 +43,7 @@ const LoginPage = () => {
     setLoading(true);
     try {
       await login(formData);
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Error al iniciar sesión');
     } finally {

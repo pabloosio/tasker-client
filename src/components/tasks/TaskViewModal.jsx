@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Modal, Spinner } from 'react-bootstrap';
-import { FiClock, FiLoader, FiCheckCircle, FiCalendar, FiX } from 'react-icons/fi';
+import { FiClock, FiLoader, FiCheckCircle, FiCalendar, FiX, FiInbox, FiEye } from 'react-icons/fi';
 import checklistService from '../../services/checklistService';
+import TaskReference from './TaskReference';
+import TaskActivity from '../activity/TaskActivity';
 
 const POSTIT_BG = {
   high:   '#ffd0dc',
@@ -10,8 +12,10 @@ const POSTIT_BG = {
 };
 
 const STATUS_CONFIG = {
-  pending:     { label: 'Pendiente',   icon: FiClock,       color: 'var(--warning, #F5D98C)' },
+  backlog:     { label: 'Backlog',     icon: FiInbox,       color: '#94A3B8' },
+  pending:     { label: 'Por hacer',   icon: FiClock,       color: 'var(--warning, #F5D98C)' },
   in_progress: { label: 'En Progreso', icon: FiLoader,      color: 'var(--info, #8BC5D6)' },
+  in_review:   { label: 'En Revisión', icon: FiEye,         color: '#A78BFA' },
   completed:   { label: 'Completada',  icon: FiCheckCircle, color: 'var(--success, #7BC89C)' }
 };
 
@@ -188,7 +192,8 @@ const TaskViewModal = ({ show, onHide, task }) => {
         </button>
 
         <div className="taskview-body">
-          {/* Título */}
+          {/* ID + Título */}
+          <TaskReference number={task.number} title={task.title} className="mb-1" />
           <div className="taskview-title">{task.title}</div>
 
           {/* Chips: estado + categoría */}
@@ -276,6 +281,8 @@ const TaskViewModal = ({ show, onHide, task }) => {
               </div>
             </div>
           )}
+
+          <TaskActivity key={task.id} taskId={task.id} />
         </div>
       </div>
     </Modal>
