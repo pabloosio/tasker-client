@@ -96,7 +96,7 @@ const ProfilePage = () => {
   const openBoard = (workspaceId) => {
     const workspace = (workspaces || []).find(w => w.id === workspaceId);
     if (workspace) switchWorkspace(workspace);
-    navigate('/dashboard');
+    navigate('/tablero');
   };
 
   if (loading) {

@@ -60,7 +60,7 @@ const RegisterPage = () => {
           navigate('/login');
         }, 5000);
       } else {
-        navigate('/dashboard');
+        navigate('/tablero');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Error al registrarse');

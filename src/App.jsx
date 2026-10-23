@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import PrivateRoute from './components/common/PrivateRoute';
@@ -25,6 +25,12 @@ import AdminUsersPage from './pages/admin/AdminUsersPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/App.css';
 
+// Rutas anteriores del tablero (/dashboard, /tareas): se conservan para links viejos (correos, favoritos, ?task=)
+const RedirectToBoard = () => {
+  const { search, hash } = useLocation();
+  return <Navigate to={{ pathname: '/tablero', search, hash }} replace />;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -40,7 +46,7 @@ function App() {
 
             {/* Rutas protegidas */}
             <Route
-              path="/dashboard"
+              path="/tablero"
               element={
                 <PrivateRoute>
                   <DashboardPage />
@@ -129,8 +135,10 @@ function App() {
             />
 
             {/* Redireccionamiento por defecto */}
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route path="*" element={<Navigate to="/dashboard" />} />
+            <Route path="/dashboard" element={<RedirectToBoard />} />
+            <Route path="/tareas" element={<RedirectToBoard />} />
+            <Route path="/" element={<Navigate to="/tablero" replace />} />
+            <Route path="*" element={<Navigate to="/tablero" replace />} />
           </Routes>
         </WorkspaceProvider>
       </AuthProvider>

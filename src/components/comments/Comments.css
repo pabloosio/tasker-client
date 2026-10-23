@@ -1,0 +1,293 @@
+/* ========================================
+   Comentarios de una tarea
+   ======================================== */
+.task-comments {
+  border-top: 1px solid var(--gray-300, #DCE3EA);
+  padding-top: 1rem;
+  margin-top: 0.75rem;
+}
+
+.comments-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.comments-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--gray-700, #374151);
+}
+
+.comments-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gray-600);
+  background: var(--gray-100);
+  border: 1px solid var(--border-input, #C9D1DB);
+  border-radius: 999px;
+  padding: 0 0.45rem;
+}
+
+.comments-empty {
+  font-size: 0.82rem;
+  color: var(--gray-500, #8994A2);
+  margin: 0 0 0.5rem;
+}
+
+.comments-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #B42318;
+  background: var(--danger-light, #FAE5E5);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
+
+.comments-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.comment-item {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.comment-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background: var(--gray-500);
+}
+
+.comment-item.is-mine .comment-avatar {
+  background: var(--primary);
+}
+
+/* Burbuja del comentario */
+.comment-body {
+  flex: 1;
+  min-width: 0;
+  background: var(--gray-100, #F8FAFC);
+  border: 1px solid var(--gray-300, #DCE3EA);
+  border-radius: 0 10px 10px 10px;
+  padding: 0.45rem 0.7rem 0.55rem;
+}
+
+.comment-item.is-mine .comment-body {
+  background: var(--primary-pastel, #F0EEFF);
+  border-color: color-mix(in srgb, var(--primary) 22%, white);
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+  color: var(--gray-500, #8994A2);
+  margin-bottom: 0.15rem;
+}
+
+.comment-meta strong {
+  color: var(--gray-800);
+  font-size: 0.8rem;
+}
+
+.comment-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.comment-action {
+  border: none;
+  background: transparent;
+  color: var(--gray-500);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.comment-action:hover {
+  background: white;
+  color: var(--primary);
+}
+
+.comment-action.is-danger:hover {
+  color: var(--danger, #E88B8B);
+}
+
+/* Con mouse, las acciones aparecen al pasar sobre el comentario (en táctil siempre se ven) */
+@media (hover: hover) {
+  .comment-actions {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .comment-item:hover .comment-actions,
+  .comment-item:focus-within .comment-actions {
+    opacity: 1;
+  }
+}
+
+.comment-content {
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--gray-800);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-content a {
+  color: var(--primary-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.comment-composer textarea,
+.comment-edit textarea {
+  font-size: 0.875rem;
+  resize: none;
+  min-height: 62px;
+}
+
+.comment-composer-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.comment-composer-footer kbd {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.35rem;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.task-comments .comment-send {
+  --bs-btn-bg: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-bg: var(--primary-dark);
+  --bs-btn-hover-border-color: var(--primary-dark);
+  --bs-btn-disabled-bg: var(--primary-light);
+  --bs-btn-disabled-border-color: var(--primary-light);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---------- @menciones ---------- */
+.comment-mention {
+  display: inline;
+  padding: 0 0.2rem;
+  border-radius: 4px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: color-mix(in srgb, var(--primary) 12%, white);
+}
+
+/* Cuando te mencionan a ti */
+.comment-mention.is-me {
+  color: #8a4b00;
+  background: #ffe8b3;
+}
+
+.mention-input {
+  position: relative;
+}
+
+.mention-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  max-width: 360px;
+  background: white;
+  border: 1px solid var(--border-input, #C9D1DB);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.15);
+  padding: 0.3rem;
+}
+
+.mention-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.5rem;
+  border-radius: 7px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--gray-800);
+}
+
+.mention-option.is-active {
+  background: var(--primary-pastel);
+}
+
+.mention-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mention-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.mention-role {
+  font-size: 0.72rem;
+  color: var(--gray-500);
+}
+
+.mention-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+}
+
+.mention-empty a {
+  font-weight: 700;
+  color: var(--primary);
+}

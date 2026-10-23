@@ -27,7 +27,7 @@ const TaskLinkPage = () => {
         const task = response.data;
         const workspace = (workspaces || []).find(w => w.id === task.workspaceId);
         if (workspace) switchWorkspace(workspace);
-        navigate(`/dashboard?task=${task.id}`, { replace: true });
+        navigate(`/tablero?task=${task.id}`, { replace: true });
       })
       .catch((err) => {
         if (!cancelled) setError(err.response?.status === 403 ? 'forbidden' : 'notFound');
@@ -62,7 +62,7 @@ const TaskLinkPage = () => {
           <Icon size={36} className="text-muted mb-3" />
           <h5 className="mb-2">{title}</h5>
           <p className="text-muted mb-4">{text}</p>
-          <Link to="/dashboard" className="btn btn-primary">Ir a mis tableros</Link>
+          <Link to="/tablero" className="btn btn-primary">Ir a mis tableros</Link>
         </Card.Body>
       </Card>
     </MainLayout>

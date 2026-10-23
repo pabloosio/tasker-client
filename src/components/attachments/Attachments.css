@@ -1,0 +1,464 @@
+/* ========== Archivos adjuntos ==========
+   Fondos semitransparentes para que funcione igual en el modal blanco (TaskForm)
+   y en el post-it de solo lectura (TaskViewModal). */
+
+.task-attachments {
+  border-top: 1px solid var(--gray-300, #DCE3EA);
+  padding-top: 1rem;
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.attachments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.attachments-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--gray-700, #374151);
+}
+
+.attachments-count {
+  font-size: 0.75rem;
+  color: var(--gray-500, #6b7280);
+  font-weight: 500;
+  text-align: right;
+}
+
+.attachments-empty,
+.attachments-disabled {
+  font-size: 0.8rem;
+  color: var(--gray-500, #6b7280);
+  margin: 0;
+}
+
+.attachments-disabled { font-style: italic; }
+
+.attachments-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #B42318;
+  background: var(--danger-light, #FAE5E5);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
+
+/* Capturas pegadas con Ctrl+V esperando confirmación */
+.attachments-pasted {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.8rem;
+  background: var(--primary-pastel, #EEF2FF);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
+
+/* ---------- Zona para soltar ---------- */
+.attachment-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 2px dashed var(--border-input, #C9D1DB);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  outline: none;
+}
+
+.attachment-dropzone:hover,
+.attachment-dropzone:focus-visible {
+  border-color: var(--primary-light, #8D83E6);
+  background: var(--primary-pastel, #F0EEFF);
+}
+
+.attachment-dropzone.is-dragging {
+  border-color: var(--primary, #6F63C6);
+  background: var(--primary-pastel, #F0EEFF);
+  border-style: solid;
+}
+
+.attachment-dropzone.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.attachment-dropzone-icon {
+  color: var(--primary, #6F63C6);
+  flex-shrink: 0;
+}
+
+.attachment-dropzone-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.attachment-dropzone-text strong {
+  font-size: 0.85rem;
+  color: var(--gray-700, #374151);
+}
+
+.attachment-dropzone-text > span {
+  font-size: 0.72rem;
+  color: var(--gray-500, #6b7280);
+}
+
+/* ---------- Imágenes: cuadrícula de miniaturas ---------- */
+.attachments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.attachment-tile {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.06);
+  aspect-ratio: 1 / 1;
+}
+
+.attachment-tile-preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+
+.attachment-tile-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s;
+}
+
+.attachment-tile:hover .attachment-tile-preview img { transform: scale(1.04); }
+
+.attachment-tile-zoom {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.attachment-tile-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.attachment-tile:hover .attachment-tile-actions,
+.attachment-tile:hover .attachment-tile-zoom,
+.attachment-tile:focus-within .attachment-tile-actions { opacity: 1; }
+
+.attachment-tile-actions .attachment-action {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* En pantallas táctiles no hay hover: acciones siempre visibles */
+@media (hover: none) {
+  .attachment-tile-actions,
+  .attachment-tile-zoom { opacity: 1; }
+}
+
+/* ---------- Documentos: filas ---------- */
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attachment-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.attachment-row.has-error { border-color: rgba(220, 38, 38, 0.35); }
+
+.attachment-row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.attachment-row-main.is-static { cursor: default; }
+button.attachment-row-main:hover { background: rgba(0, 0, 0, 0.04); }
+
+.attachment-row-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.attachment-row.is-uploading .attachment-row-icon { margin-left: 4px; }
+
+.attachment-row-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.attachment-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.3;
+}
+
+.attachment-row-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--gray-800, #2D3540);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-row-meta {
+  font-size: 0.72rem;
+  color: var(--gray-500, #6b7280);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-progress {
+  height: 14px;
+  margin-top: 4px;
+  font-size: 0.65rem;
+}
+
+.attachment-action {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--gray-600, #6B7685);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.attachment-action:hover { background: rgba(0, 0, 0, 0.07); color: var(--gray-800, #2D3540); }
+.attachment-action.is-danger:hover { background: var(--danger-light, #FAE5E5); color: #B42318; }
+
+/* ---------- Visor a pantalla completa ---------- */
+.attachment-viewer-backdrop.show { opacity: 0.92; }
+
+.attachment-viewer {
+  background: rgba(17, 20, 26, 0.96) !important;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+}
+
+.attachment-viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.attachment-viewer-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.attachment-viewer-title span { font-weight: 600; }
+.attachment-viewer-title small { color: rgba(255, 255, 255, 0.6); font-size: 0.75rem; }
+
+.attachment-viewer-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.attachment-viewer-btn:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
+
+.attachment-viewer-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 4rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.attachment-viewer-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attachment-viewer-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.attachment-viewer-image img.is-placeholder {
+  filter: blur(6px);
+  width: 60%;
+  height: auto;
+}
+
+.attachment-viewer-spinner {
+  position: absolute;
+}
+
+.attachment-viewer-pdf {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.attachment-viewer-message {
+  text-align: center;
+  max-width: 360px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.attachment-viewer-file-icon {
+  display: inline-flex;
+  width: 96px;
+  height: 96px;
+  border-radius: 20px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  margin-bottom: 1rem;
+}
+
+.attachment-viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.attachment-viewer-nav:hover { background: rgba(255, 255, 255, 0.25); }
+.attachment-viewer-nav.is-prev { left: 0.75rem; }
+.attachment-viewer-nav.is-next { right: 0.75rem; }
+
+@media (max-width: 576px) {
+  .attachments-grid { grid-template-columns: repeat(2, 1fr); }
+  .attachment-viewer-body { padding: 0.5rem; }
+  .attachment-viewer-nav { top: auto; bottom: 1rem; transform: none; }
+}
+
+/* ---------- Indicadores en tarjetas ---------- */
+.task-card-cover {
+  display: block;
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 0.5rem 0.5rem 0 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+  user-select: none;
+}
+
+.task-attachment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  color: var(--gray-600, #6B7685);
+  font-weight: 600;
+}
+
+/* Contadores de la tarjeta (archivos, comentarios) en una sola fila */
+.task-card-counters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}

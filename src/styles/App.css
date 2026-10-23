@@ -32,6 +32,12 @@
   --gray-700: #4A5462;
   --gray-800: #2D3540;
 
+  /* Bordes de controles (inputs, selects, opciones): un poco más marcados para que se distingan
+     en monitores con mucho brillo. --bs-border-color es el que usa Bootstrap en inputs y selects. */
+  --border-input: #C9D1DB;
+  --border-input-hover: #AEB8C5;
+  --bs-border-color: #CDD5DF;
+
   /* Fondo (corcho tablero suave) */
   --bg-gradient: linear-gradient(160deg, #f2e9dc 0%, #ede2d2 40%, #e8ddcd 100%);
   --cork-texture: repeating-conic-gradient(
@@ -71,11 +77,11 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.6rem 1rem;
+  padding: 0.45rem 0.75rem;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 40%),
     #fffce8;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 0.5rem;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.5) inset,
@@ -103,41 +109,88 @@ body {
 .stats-cards {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  min-width: 0;
+  gap: 1rem;
+  flex-shrink: 0;
 }
 
-.stats-actions {
-  min-width: 0;
-}
-
+/* Número y etiqueta en una sola línea: "6 Total" */
 .stat-card-mini {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
+  white-space: nowrap;
 }
 
 .stat-card-icon {
-  font-size: 1rem;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
+  font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
 .stat-card-number {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gray-800);
 }
 
 .stat-card-label {
-  font-size: 0.65rem;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+/* Filtros rápidos dentro de la barra, separados del resumen por una línea */
+.board-toolbar .quick-filters {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.board-toolbar .quick-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.board-toolbar .quick-filter-chip {
+  flex-shrink: 0;
+  padding: 0.22rem 0.65rem;
+  white-space: nowrap;
+}
+
+.stats-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Pantallas medianas: las etiquetas de cada estado se ocultan (el ícono es el mismo de la columna
+   y al pasar el mouse se ve el nombre); el total sí conserva su etiqueta */
+@media (max-width: 1399.98px) {
+  .stat-card-mini + .stat-card-mini .stat-card-label {
+    display: none;
+  }
+
+  .stats-cards {
+    gap: 0.8rem;
+  }
+}
+
+/* Pantallas de menos de 1200 px: resumen y botones arriba, filtros en una segunda fila deslizable */
+@media (max-width: 1199.98px) {
+  .board-toolbar {
+    flex-wrap: wrap;
+    row-gap: 0.4rem;
+  }
+
+  .board-toolbar .quick-filters {
+    order: 3;
+    flex-basis: 100%;
+    padding-left: 0;
+    border-left: none;
+  }
 }
 
 .add-task-btn {
@@ -156,13 +209,14 @@ body {
 }
 
 .add-task-btn--ghost {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.85);
   color: var(--primary-dark);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-input);
 }
 
 .add-task-btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.85);
+  background: #fff;
+  border-color: var(--border-input-hover);
 }
 
 .add-task-btn--ghost:disabled {
@@ -177,23 +231,32 @@ body {
 @media (max-width: 576px) {
   .stats-bar-container {
     padding: 0.4rem 0.5rem;
-    flex-wrap: wrap;
-    align-items: flex-start;
   }
 
+  /* El resumen toma el espacio que dejan los botones (y se desliza si no cabe) */
   .stats-cards {
-    gap: 0.6rem;
-    flex: 1 1 100%;
-    flex-wrap: wrap;
+    flex: 1 1 0;
+    gap: 0.5rem;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .stats-cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* En celular solo números e íconos, para que el resumen y los botones quepan en una fila */
+  .stat-card-label {
+    display: none;
+  }
+
+  .stat-card-mini:first-child .stat-card-icon {
+    display: none;
   }
 
   .stats-actions {
-    flex: 1 1 100%;
-    justify-content: flex-end;
-  }
-
-  .stat-card-mini {
-    gap: 0.25rem;
+    gap: 0.3rem;
   }
 
   .stat-card-icon {
@@ -202,10 +265,6 @@ body {
 
   .stat-card-number {
     font-size: 0.85rem;
-  }
-
-  .stat-card-label {
-    font-size: 0.55rem;
   }
 
   .add-task-text {
@@ -677,7 +736,7 @@ body {
   justify-content: center;
   gap: 0.375rem;
   padding: 0.5rem 0.75rem;
-  border: 2px solid var(--gray-200);
+  border: 2px solid var(--border-input);
   border-radius: 0.5rem;
   background: white;
   cursor: pointer;
@@ -687,7 +746,7 @@ body {
 }
 
 .priority-option:hover {
-  border-color: var(--gray-300);
+  border-color: var(--border-input-hover);
 }
 
 .priority-option.selected {
@@ -715,7 +774,7 @@ body {
   justify-content: center;
   gap: 0.375rem;
   padding: 0.5rem 0.75rem;
-  border: 2px solid var(--gray-200);
+  border: 2px solid var(--border-input);
   border-radius: 0.5rem;
   background: white;
   cursor: pointer;
@@ -725,7 +784,7 @@ body {
 }
 
 .status-option:hover {
-  border-color: var(--gray-300);
+  border-color: var(--border-input-hover);
 }
 
 .status-option.selected {
@@ -738,6 +797,130 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+}
+
+/* ========================================
+   Formulario de tarea (crear / editar)
+   ======================================== */
+.task-form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 0.375rem;
+}
+
+.task-form-optional {
+  font-weight: 400;
+  color: var(--gray-500);
+}
+
+.task-form-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.task-form-description {
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 84px;
+}
+
+/* Estado y prioridad: una sola fila de opciones (en celular se acomodan en varias) */
+.task-form-segmented {
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.task-form-segmented .status-option,
+.task-form-segmented .priority-option {
+  flex: 1 1 0;
+  min-width: max-content;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.task-form-segmented .status-option:focus-visible,
+.task-form-segmented .priority-option:focus-visible,
+.task-form-chip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.task-form-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.4rem;
+}
+
+.task-form-chip {
+  border: 1px solid var(--border-input);
+  background: white;
+  color: var(--gray-700);
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.task-form-chip:hover {
+  border-color: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.task-form-chip.selected {
+  border-color: var(--primary);
+  background: var(--primary-pastel);
+  color: var(--primary-dark);
+}
+
+.task-form-link {
+  font-size: 0.75rem;
+}
+
+.task-form-footer {
+  gap: 0.5rem;
+  border-top: 1px solid var(--gray-300);
+  padding: 0.75rem 1rem;
+}
+
+.task-form-hint {
+  color: var(--gray-500);
+  font-size: 0.75rem;
+}
+
+.task-form-hint kbd {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.35rem;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-200);
+}
+
+.task-form-modal .btn-create-task {
+  --bs-btn-bg: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-bg: var(--primary-dark);
+  --bs-btn-hover-border-color: var(--primary-dark);
+  --bs-btn-active-bg: var(--primary-dark);
+  --bs-btn-active-border-color: var(--primary-dark);
+  --bs-btn-disabled-bg: var(--primary-light);
+  --bs-btn-disabled-border-color: var(--primary-light);
+  padding: 0.55rem 1.25rem;
+  min-width: 180px;
+}
+
+@media (max-width: 575.98px) {
+  .task-form-actions {
+    width: 100%;
+  }
+
+  .task-form-actions .btn-create-task {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 /* ========================================
@@ -765,26 +948,26 @@ main {
    ======================================== */
 .kanban-column {
   --kanban-accent: var(--primary);
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  /* Un toque del color del estado para que cada columna se distinga del corcho y de las demás */
+  background: color-mix(in srgb, var(--kanban-accent) 7%, rgba(255, 255, 255, 0.5));
+  border: 1px solid color-mix(in srgb, var(--kanban-accent) 18%, rgba(0, 0, 0, 0.08));
+  border-top: 3px solid var(--kanban-accent);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 16px rgba(16, 24, 40, 0.05);
   border-radius: 0.5rem;
-  padding: 1rem;
+  overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
+/* El título es la parte de arriba de la columna (no una tarjeta aparte) */
 .kanban-column-header {
-  margin-bottom: 0.75rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-left: 5px solid var(--kanban-accent);
-  background:
-    linear-gradient(0deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 6px 12px rgba(16, 24, 40, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.75rem;
+  background: color-mix(in srgb, var(--kanban-accent) 12%, rgba(255, 255, 255, 0.85));
+  border-bottom: 1px solid color-mix(in srgb, var(--kanban-accent) 22%, rgba(0, 0, 0, 0.06));
 }
 
 .kanban-column-header h6 {
@@ -793,38 +976,31 @@ main {
 }
 
 .kanban-column-title {
-  position: relative;
-  font-size: 0.95rem;
+  min-width: 0;
+  font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--gray-800);
-  padding: 0.05rem 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Subrayado tipo marcador (post-it) */
-.kanban-column-title::after {
-  content: '';
-  position: absolute;
-  left: 0.1rem;
-  right: 0.1rem;
-  bottom: -0.05rem;
-  height: 0.55em;
-  background: color-mix(in srgb, var(--kanban-accent) 22%, transparent);
-  border-radius: 0.35rem;
-  transform: rotate(-1deg);
-  z-index: -1;
+.kanban-column-footer {
+  padding: 0 0.5rem 0.5rem;
 }
 
 .kanban-column-header .badge {
   background: rgba(255, 255, 255, 0.75) !important;
   color: var(--gray-800) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.14);
   font-weight: 700;
 }
 
 .kanban-tasks {
   flex: 1;
+  padding: 0.5rem;
   overflow-y: auto;
   max-height: calc(100vh - 400px);
 }
@@ -849,7 +1025,7 @@ main {
 .kanban-task-card {
   /* Post-it base */
   --postit-bg: #fff7b0;      /* fallback */
-  --postit-edge: rgba(0, 0, 0, 0.08);
+  --postit-edge: rgba(0, 0, 0, 0.13);
   --postit-ink: var(--gray-800, #1f2937);
 
   position: relative;
@@ -865,13 +1041,52 @@ main {
     0 2px 6px rgba(16, 24, 40, 0.06);
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
   overflow: hidden;
-  /* Figura consistente (altura base), pero puede crecer si hay mucho contenido */
-  min-height: 168px;
 }
 
 .kanban-task-card .card-body {
   display: flex;
   flex-direction: column;
+  padding: 0.6rem 0.75rem 0.65rem;
+}
+
+/* Clave + acciones en una fila: el título usa todo el ancho de la tarjeta.
+   El padding derecho deja libre la esquina doblada. */
+.task-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 24px;
+  margin-bottom: 0.2rem;
+  padding-right: 1.1rem;
+}
+
+.task-card-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  transition: opacity 0.15s ease;
+}
+
+.kanban-task-card .task-card-actions .btn-icon {
+  width: 26px;
+  height: 26px;
+}
+
+/* Con mouse, las acciones aparecen al pasar sobre la tarjeta (en táctil siempre se ven) */
+@media (hover: hover) {
+  .kanban-task-card .task-card-actions {
+    opacity: 0;
+  }
+
+  .kanban-task-card:hover .task-card-actions,
+  .kanban-task-card:focus-within .task-card-actions {
+    opacity: 1;
+  }
+}
+
+.kanban-task-card .task-title {
+  font-size: 0.92rem;
+  line-height: 1.3;
 }
 
 .kanban-task-card .task-dates {
@@ -949,14 +1164,6 @@ main {
   filter: saturate(1.03);
 }
 
-.kanban-task-card .btn-icon {
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
-}
-
-.kanban-task-card:hover .btn-icon {
-  opacity: 1;
-}
 
 .kanban-task-card .badge {
   padding: 0.25rem 0.5rem;
@@ -985,7 +1192,7 @@ main {
   gap: 0.35rem;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid var(--gray-300);
+  border: 1px solid var(--border-input);
   background: #fff;
   color: var(--gray-700);
   font-size: 0.8rem;
@@ -1089,10 +1296,6 @@ main {
 }
 
 @media (max-width: 768px) {
-  .kanban-column {
-    padding: 0.75rem;
-  }
-
   .kanban-tasks {
     max-height: 400px;
   }
@@ -1179,51 +1382,9 @@ main {
 
 /* Post-it cards más compactos en mobile */
 @media (max-width: 576px) {
-  .kanban-task-card {
-    min-height: 140px;
-  }
-
   .kanban-task-card .card-body {
-    padding: 0.65rem !important;
+    padding: 0.55rem 0.65rem;
   }
-}
-
-/* ========================================
-   Export Page
-   ======================================== */
-.export-page .page-header h4 {
-  display: flex;
-  align-items: center;
-  color: var(--gray-800);
-}
-
-.export-card {
-  border: 1px solid var(--gray-200);
-  border-radius: 1rem;
-  transition: all 0.2s ease;
-}
-
-.export-card:hover {
-  border-color: var(--gray-300);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-.export-icon-wrapper {
-  width: 72px;
-  height: 72px;
-  border-radius: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.export-btn {
-  padding: 0.625rem 1.5rem;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 /* ========================================
@@ -1242,20 +1403,68 @@ main {
 .my-tasks-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.25rem;
-  font-size: 0.9rem;
+  gap: 0.5rem;
+}
+
+.my-tasks-summary-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-input);
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.82rem;
   color: var(--gray-600);
 }
 
-.my-tasks-group-title {
+.my-tasks-summary-item strong {
+  color: var(--gray-800);
+}
+
+.my-tasks-summary-item.is-danger {
+  border-color: color-mix(in srgb, #dc3545 35%, white);
+  background: color-mix(in srgb, #dc3545 7%, white);
+  color: #b42318;
+}
+
+.my-tasks-summary-item.is-danger strong {
+  color: #b42318;
+}
+
+/* Cada grupo se ve como una columna del tablero: franja de color arriba y encabezado integrado */
+.my-tasks-group {
+  --group-color: var(--primary);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid color-mix(in srgb, var(--group-color) 18%, rgba(0, 0, 0, 0.08));
+  border-top: 3px solid var(--group-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 16px rgba(16, 24, 40, 0.05);
+}
+
+.my-tasks-group-header {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-weight: 700;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  background: color-mix(in srgb, var(--group-color) 10%, white);
+  border-bottom: 1px solid color-mix(in srgb, var(--group-color) 20%, rgba(0, 0, 0, 0.06));
+}
+
+.my-tasks-group-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
+  color: var(--gray-800);
+}
+
+.my-tasks-group-header .badge {
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: var(--gray-800) !important;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  font-weight: 700;
 }
 
 .my-tasks-group.is-done .my-task-title {
@@ -1266,14 +1475,26 @@ main {
 .my-task-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
+  gap: 0.9rem;
+  padding: 0.65rem 0.9rem;
   border-left: 4px solid var(--priority-color);
   border-bottom: 1px solid var(--gray-300);
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .my-task-row:last-child {
   border-bottom: none;
+}
+
+.my-task-row:hover,
+.my-task-row:focus-visible {
+  background: var(--primary-pastel);
+  outline: none;
+}
+
+.my-task-row.is-opening {
+  opacity: 0.7;
 }
 
 .my-task-main {
@@ -1311,20 +1532,63 @@ main {
   text-decoration: underline;
 }
 
-.my-task-status {
-  width: 150px;
+.my-task-open {
   flex-shrink: 0;
+  color: var(--gray-500);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.my-task-row:hover .my-task-open {
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
+/* Estado: etiqueta de color a la izquierda, se cambia desde aquí mismo */
+.my-task-status {
+  --status-color: #94a3b8;
+  width: 138px;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--status-color) 55%, white);
+  background-color: color-mix(in srgb, var(--status-color) 14%, white);
+  color: color-mix(in srgb, var(--status-color) 70%, #1f2937);
+  cursor: pointer;
+}
+
+.my-task-status:focus {
+  border-color: var(--status-color);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--status-color) 25%, transparent);
+}
+
+.my-task-status[data-status="BACKLOG"]     { --status-color: #94a3b8; }
+.my-task-status[data-status="PENDING"]     { --status-color: #e0a800; }
+.my-task-status[data-status="IN_PROGRESS"] { --status-color: #0dcaf0; }
+.my-task-status[data-status="IN_REVIEW"]   { --status-color: #8b5cf6; }
+.my-task-status[data-status="COMPLETED"]   { --status-color: #198754; }
+
+.my-task-status option {
+  color: var(--gray-800);
+  background: white;
+  font-weight: 500;
 }
 
 @media (max-width: 576px) {
   .my-task-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    padding: 0.6rem 0.75rem;
   }
 
-  .my-task-status {
-    width: 100%;
+  /* En celular: el estado arriba a la izquierda y la flecha a la derecha; el texto abajo a lo ancho */
+  .my-task-main {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .my-task-open {
+    margin-left: auto;
   }
 }
 
@@ -1456,4 +1720,91 @@ a.profile-stat:hover {
   font-size: 0.72rem;
   font-weight: 600;
   color: #198754;
+}
+
+/* ========================================
+   Colaboradores (formulario de tarea)
+   ======================================== */
+.task-collaborators {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.task-collaborator-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.3rem 0.15rem 0.2rem;
+  border: 1px solid var(--border-input);
+  border-radius: 999px;
+  background: white;
+  font-size: 0.82rem;
+  color: var(--gray-800);
+}
+
+.task-collaborator-chip button {
+  border: none;
+  background: none;
+  color: var(--gray-500);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.task-collaborator-chip button:hover {
+  background: var(--gray-100);
+  color: var(--danger);
+}
+
+.task-collaborator-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-collaborator-add {
+  width: auto;
+  min-width: 200px;
+  border-radius: 999px;
+  border-style: dashed;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+/* Colaboradores en la tarjeta del tablero: avatares pequeños junto a la persona asignada */
+.task-card-collaborators {
+  display: inline-flex;
+  margin-left: 0.35rem;
+}
+
+.task-card-collaborators span {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--postit-bg, white);
+  background: var(--primary-light);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -5px;
+}
+
+.task-card-collaborators span:first-child {
+  margin-left: 0;
 }

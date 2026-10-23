@@ -23,7 +23,7 @@ const LoginPage = () => {
   // Solo rutas internas (evita redirecciones a otros sitios)
   const from = typeof location.state?.from === 'string' && location.state.from.startsWith('/') && !location.state.from.startsWith('//')
     ? location.state.from
-    : '/dashboard';
+    : '/tablero';
 
   useEffect(() => {
     if (error && errorRef.current) {

@@ -92,13 +92,13 @@ const GlobalSearch = () => {
       key: `t-${task.id}`,
       type: 'task',
       data: task,
-      open: () => goToWorkspace(task.workspaceId, `/dashboard?task=${task.id}`)
+      open: () => goToWorkspace(task.workspaceId, `/tablero?task=${task.id}`)
     })),
     ...visibleResults.workspaces.map(ws => ({
       key: `w-${ws.id}`,
       type: 'workspace',
       data: ws,
-      open: () => goToWorkspace(ws.id, '/dashboard')
+      open: () => goToWorkspace(ws.id, '/tablero')
     })),
     ...visibleResults.categories.map(cat => ({
       key: `c-${cat.id}`,

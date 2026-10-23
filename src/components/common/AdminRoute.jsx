@@ -26,7 +26,7 @@ const AdminRoute = ({ children }) => {
 
   // Si el usuario no es admin, redirigir a dashboard
   if (user.role !== 'ADMIN') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/tablero" replace />;
   }
 
   // Usuario es admin, mostrar contenido

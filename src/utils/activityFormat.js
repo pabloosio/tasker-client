@@ -1,4 +1,5 @@
 import { formatDate } from './dateUtils';
+import { formatFileSize } from './fileUtils';
 
 /**
  * Convierte un evento del historial en una frase legible:
@@ -29,9 +30,11 @@ const wipText = (limits) => {
 export const ACTIVITY_GROUPS = [
   { value: '', label: 'Todos los eventos' },
   { value: 'status', label: 'Cambios de estado' },
-  { value: 'assignment', label: 'Asignaciones' },
+  { value: 'assignment', label: 'Asignaciones y colaboradores' },
   { value: 'edit', label: 'Creación y ediciones' },
   { value: 'checklist', label: 'Checklist' },
+  { value: 'attachments', label: 'Archivos' },
+  { value: 'comments', label: 'Comentarios' },
   { value: 'deleted', label: 'Tareas eliminadas' },
   { value: 'board', label: 'Tablero (miembros, categorías, WIP)' }
 ];
@@ -76,6 +79,18 @@ export const describeActivity = (entry) => {
       return { tone: 'warn', text: `desmarcó "${d.content}"`, details: d.progress ? [`Avance ${d.progress}`] : null };
     case 'CHECKLIST_ITEM_DELETED':
       return { tone: 'danger', text: `quitó de la checklist "${d.content}"` };
+    case 'ATTACHMENT_ADDED':
+      return { tone: 'edit', text: `adjuntó "${d.fileName}"`, details: d.sizeBytes ? [formatFileSize(d.sizeBytes)] : null };
+    case 'ATTACHMENT_DELETED':
+      return { tone: 'danger', text: `eliminó el archivo "${d.fileName}"` };
+    case 'COLLABORATOR_ADDED':
+      return { tone: 'assign', text: `agregó a colaborar a ${(d.names || []).join(', ')}` };
+    case 'COLLABORATOR_REMOVED':
+      return { tone: 'assign', text: `quitó de colaboradores a ${(d.names || []).join(', ')}` };
+    case 'COMMENT_ADDED':
+      return { tone: 'edit', text: 'comentó', details: d.content ? [`"${d.content}"`] : null };
+    case 'COMMENT_DELETED':
+      return { tone: 'danger', text: d.author ? `eliminó un comentario de ${d.author}` : 'eliminó un comentario', details: d.content ? [`"${d.content}"`] : null };
     case 'CATEGORY_CREATED':
       return { tone: 'board', text: `creó la categoría "${d.name}"` };
     case 'CATEGORY_UPDATED':

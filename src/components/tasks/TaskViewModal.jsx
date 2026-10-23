@@ -4,6 +4,10 @@ import { FiClock, FiLoader, FiCheckCircle, FiCalendar, FiX, FiInbox, FiEye } fro
 import checklistService from '../../services/checklistService';
 import TaskReference from './TaskReference';
 import TaskActivity from '../activity/TaskActivity';
+import TaskAttachments from '../attachments/TaskAttachments';
+import TaskComments from '../comments/TaskComments';
+import { useAuth } from '../../context/AuthContext';
+import { useWorkspace } from '../../context/WorkspaceContext';
 
 const POSTIT_BG = {
   high:   '#ffd0dc',
@@ -19,9 +23,20 @@ const STATUS_CONFIG = {
   completed:   { label: 'Completada',  icon: FiCheckCircle, color: 'var(--success, #7BC89C)' }
 };
 
-const TaskViewModal = ({ show, onHide, task }) => {
+const TaskViewModal = ({ show, onHide, task, onAttachmentsChange, workspace }) => {
   const [checklistItems, setChecklistItems] = useState([]);
   const [loadingChecklist, setLoadingChecklist] = useState(false);
+
+  // Aquí no se suben archivos (solo lectura), pero quien subió uno o creó la tarea puede borrarlo.
+  // Observadores: solo ver y descargar.
+  const { user } = useAuth();
+  const { currentWorkspace: activeWorkspace } = useWorkspace();
+  // `workspace` permite abrir una tarea de otro tablero (ej. desde Mis tareas)
+  const currentWorkspace = workspace || activeWorkspace;
+  const isViewer = currentWorkspace?.myRole === 'VIEWER';
+  const isManager = ['OWNER', 'ADMIN'].includes(currentWorkspace?.myRole);
+  const canDeleteAttachment = (attachment) =>
+    !isViewer && (isManager || attachment.uploader?.id === user?.id || task?.userId === user?.id);
 
   useEffect(() => {
     if (show && task?.id) {
@@ -219,7 +234,7 @@ const TaskViewModal = ({ show, onHide, task }) => {
           )}
 
           {/* Meta: fecha y asignado */}
-          {(task.dueDate || task.assignee) && (
+          {(task.dueDate || task.assignee || task.collaborators?.length > 0) && (
             <div className="taskview-meta-row">
               {task.dueDate && (
                 <span className="taskview-meta-pill">
@@ -237,6 +252,12 @@ const TaskViewModal = ({ show, onHide, task }) => {
                   {task.assignee.name}
                 </span>
               )}
+              {task.collaborators?.map((c) => (
+                <span key={c.id} className="taskview-meta-pill" title="Colabora en la tarea">
+                  <span className="taskview-avatar">{c.name?.charAt(0)?.toUpperCase()}</span>
+                  {c.name}
+                </span>
+              ))}
             </div>
           )}
 
@@ -281,6 +302,21 @@ const TaskViewModal = ({ show, onHide, task }) => {
               </div>
             </div>
           )}
+
+          <TaskAttachments
+            key={`files-${task.id}`}
+            taskId={task.id}
+            canDelete={canDeleteAttachment}
+            onSummaryChange={(summary) => onAttachmentsChange?.(task.id, summary)}
+          />
+
+          {/* Comentar no modifica la tarea: también los observadores pueden hacerlo */}
+          <TaskComments
+            key={`comments-${task.id}`}
+            taskId={task.id}
+            canModerate={isManager}
+            onCountChange={(commentCount) => onAttachmentsChange?.(task.id, { commentCount })}
+          />
 
           <TaskActivity key={task.id} taskId={task.id} />
         </div>

@@ -1,10 +1,11 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { Row, Col, Card, Spinner, Alert, Badge, ProgressBar, Form, Offcanvas, OverlayTrigger, Popover } from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiCheckSquare, FiBarChart2, FiInbox, FiEye, FiLock, FiUser, FiUserX, FiAlertCircle, FiArrowUp, FiAlertTriangle, FiArchive } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiLoader, FiPlus, FiEdit2, FiTrash2, FiCalendar, FiList, FiRefreshCw, FiX, FiFilter, FiBarChart2, FiInbox, FiEye, FiLock, FiUser, FiUserX, FiAlertCircle, FiArrowUp, FiAlertTriangle, FiArchive, FiPaperclip, FiMessageSquare } from 'react-icons/fi';
 import MainLayout from '../../components/layout/MainLayout';
 import TaskForm from '../../components/tasks/TaskForm';
 import TaskViewModal from '../../components/tasks/TaskViewModal';
+import '../../components/attachments/Attachments.css';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import WeeklyReportModal from '../../components/tasks/WeeklyReportModal';
 import taskService from '../../services/taskService';
@@ -192,6 +193,16 @@ const DashboardPage = () => {
     priority: task.priority?.toLowerCase() || 'medium'
   });
 
+  // Las portadas se firman por 1 hora: si una deja de cargar se oculta y se recarga el tablero
+  // en silencio (como mucho una vez cada 5 min, aunque fallen varias a la vez)
+  const lastCoverReload = useRef(0);
+  const handleCoverError = (e) => {
+    e.currentTarget.style.display = 'none';
+    if (Date.now() - lastCoverReload.current < 5 * 60 * 1000) return;
+    lastCoverReload.current = Date.now();
+    fetchData({ showLoading: false });
+  };
+
   const fetchData = async ({ showLoading } = { showLoading: true }) => {
     if (!currentWorkspace) return;
     if (showLoading) setLoading(true);
@@ -278,6 +289,13 @@ const DashboardPage = () => {
     setShowTaskModal(false);
   };
 
+  // Archivos agregados o borrados desde el modal: actualizar portada y contador de la tarjeta
+  const handleAttachmentsChange = (taskId, summary) => {
+    setTasks(prev => (Array.isArray(prev) ? prev : []).map(task =>
+      task.id === taskId ? { ...task, ...summary } : task
+    ));
+  };
+
   const handleEditTask = (task) => {
     setTaskToEdit(task);
     setShowTaskModal(true);
@@ -320,7 +338,23 @@ const DashboardPage = () => {
   const isManager = currentWorkspace?.isPersonal || ['OWNER', 'ADMIN'].includes(currentWorkspace?.myRole);
   const canDeleteTask = (task) => !isViewer && (isManager || task.userId === user?.id);
   const canEditTask = (task) =>
-    canDeleteTask(task) || (!isViewer && (task.assignedTo || task.assignee?.id) === user?.id);
+    canDeleteTask(task) || (!isViewer && (
+      (task.assignedTo || task.assignee?.id) === user?.id
+      || (task.collaborators || []).some((c) => c.id === user?.id)
+    ));
+
+  // Avatares de colaboradores en la tarjeta (máximo 3 y "+N")
+  const renderCollaborators = (task) => {
+    const list = task.collaborators || [];
+    if (!list.length) return null;
+    const shown = list.slice(0, 3);
+    return (
+      <span className="task-card-collaborators" title={`Colaboran: ${list.map((c) => c.name).join(', ')}`}>
+        {shown.map((c) => <span key={c.id}>{c.name?.charAt(0)?.toUpperCase()}</span>)}
+        {list.length > shown.length && <span>+{list.length - shown.length}</span>}
+      </span>
+    );
+  };
 
   // Posición para soltar una tarjeta en `index` de una columna (punto medio entre vecinas)
   const positionAt = (columnTasks, index) => {
@@ -504,8 +538,8 @@ const DashboardPage = () => {
     return opts;
   })();
 
-  const TaskCard = ({ task, index }) => (
-    <Draggable draggableId={task.id} index={index} isDragDisabled={!canEditTask(task)}>
+  const renderTaskCard = (task, index) => (
+    <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={!canEditTask(task)}>
       {(provided, snapshot) => (
         <Card
           ref={provided.innerRef}
@@ -520,21 +554,21 @@ const DashboardPage = () => {
             cursor: canEditTask(task) ? 'grab' : 'pointer'
           }}
         >
-          <Card.Body className="p-3">
-            <div className="task-key mb-1">{formatTaskKey(task.number)}</div>
-            <div className="d-flex justify-content-between align-items-start mb-2">
-              <h6 className="task-title mb-0 flex-grow-1" style={{ fontSize: '0.95rem' }}>
-                {task.title}
-              </h6>
+          {task.cover && (
+            <img key={task.cover} src={task.cover} alt="" className="task-card-cover" loading="lazy" draggable={false} onError={handleCoverError} />
+          )}
+          <Card.Body>
+            <div className="task-card-top">
+              <span className="task-key">{formatTaskKey(task.number)}</span>
               {!isViewer && !canEditTask(task) && (
                 <FiLock
                   size={13}
-                  className="text-muted flex-shrink-0 ms-1"
+                  className="text-muted flex-shrink-0 ms-auto"
                   title="Solo la persona asignada, quien la creó o un administrador pueden moverla"
                 />
               )}
               {canEditTask(task) && (
-                <div className="d-flex gap-1">
+                <div className="task-card-actions">
                   <button
                     className="btn-icon btn-icon-edit btn-sm"
                     onClick={(e) => {
@@ -560,6 +594,7 @@ const DashboardPage = () => {
                 </div>
               )}
             </div>
+            <h6 className="task-title mb-2">{task.title}</h6>
 
             {task.description && (
               <p className="task-description text-muted mb-2" style={{ fontSize: '0.85rem' }}>
@@ -593,6 +628,7 @@ const DashboardPage = () => {
               <div className="d-flex align-items-center gap-1 mb-2 text-muted" style={{ fontSize: '0.75rem' }}>
                 <FiUserX size={12} />
                 Sin asignar
+                {renderCollaborators(task)}
               </div>
             )}
 
@@ -605,6 +641,7 @@ const DashboardPage = () => {
                   {task.assignee.name?.charAt(0)?.toUpperCase()}
                 </span>
                 <span className="text-muted" style={{ fontSize: '0.75rem' }}>{task.assignee.name}</span>
+                {renderCollaborators(task)}
               </div>
             )}
 
@@ -625,6 +662,23 @@ const DashboardPage = () => {
                 </div>
               );
             })()}
+
+            {(task.attachmentCount > 0 || Number(task.commentCount) > 0) && (
+              <div className="task-card-counters mb-2">
+                {task.attachmentCount > 0 && (
+                  <span className="task-attachment-count" title={`${task.attachmentCount} archivo(s) adjunto(s)`}>
+                    <FiPaperclip size={12} />
+                    {task.attachmentCount}
+                  </span>
+                )}
+                {Number(task.commentCount) > 0 && (
+                  <span className="task-attachment-count" title={`${task.commentCount} comentario(s)`}>
+                    <FiMessageSquare size={12} />
+                    {task.commentCount}
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className="task-dates">
               {task.dueDate && (
@@ -653,7 +707,9 @@ const DashboardPage = () => {
   );
 
   // Contador de la columna con límite WIP: "4/3" en rojo si se excede. OWNER/ADMIN lo editan con clic.
-  const WipBadge = ({ status, count }) => {
+  // Se usan como funciones (no como <Componente />): definidas dentro de DashboardPage, React las
+  // trataría como un tipo nuevo en cada render y desmontaría todas las tarjetas y popovers.
+  const renderWipBadge = (status, count) => {
     const limit = wipLimits[status];
     const exceeded = limit && count > limit;
     const badge = (
@@ -697,19 +753,15 @@ const DashboardPage = () => {
     );
   };
 
-  const KanbanColumn = ({ status, title, icon: Icon, color, tasks: columnTasks, footer }) => (
-    <Col md={6} lg={4} xl className="mb-4 mb-xl-0">
+  const renderColumn = ({ status, title, icon: Icon, color, tasks: columnTasks, footer }) => (
+    <Col key={status} md={6} lg={4} xl className="mb-3 mb-xl-0">
       <div className="kanban-column" data-status={status} style={{ '--kanban-accent': color }}>
         <div className="kanban-column-header">
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <Icon size={18} style={{ color }} />
-            <span className="kanban-column-title">{title}</span>
-            {WIP_COLUMNS.includes(status) ? (
-              <WipBadge status={status} count={countInColumn(status)} />
-            ) : (
-              <Badge bg="secondary" className="ms-auto">{columnTasks.length}</Badge>
-            )}
-          </div>
+          <Icon size={16} style={{ color }} className="flex-shrink-0" />
+          <span className="kanban-column-title" title={title}>{title}</span>
+          {WIP_COLUMNS.includes(status)
+            ? renderWipBadge(status, countInColumn(status))
+            : <Badge bg="secondary" className="ms-auto">{columnTasks.length}</Badge>}
         </div>
 
         <Droppable droppableId={status}>
@@ -724,15 +776,13 @@ const DashboardPage = () => {
                   <p className="text-muted small mb-0">Sin tareas</p>
                 </div>
               ) : (
-                columnTasks.map((task, index) => (
-                  <TaskCard key={task.id} task={task} index={index} />
-                ))
+                columnTasks.map((task, index) => renderTaskCard(task, index))
               )}
               {provided.placeholder}
             </div>
           )}
         </Droppable>
-        {footer}
+        {footer && <div className="kanban-column-footer">{footer}</div>}
       </div>
     </Col>
   );
@@ -751,46 +801,67 @@ const DashboardPage = () => {
   return (
     <MainLayout>
       {isViewer && (
-        <Alert variant="info" className="mb-4 py-2">
-          Estás viendo este tablero en modo <strong>solo lectura</strong>. No podés crear ni modificar tareas.
+        <Alert variant="info" className="mb-2 py-2">
+          Estás viendo este tablero en modo <strong>solo lectura</strong>. No puedes crear ni modificar tareas.
         </Alert>
       )}
 
       {error && (
-        <Alert variant="danger" dismissible onClose={() => setError('')} className="mb-4">
+        <Alert variant="danger" dismissible onClose={() => setError('')} className="mb-2">
           {error}
         </Alert>
       )}
 
-      {/* Stats Bar con botón de agregar */}
-      <div className="stats-bar-container mb-4">
+      {/* Barra única: resumen · filtros rápidos · acciones */}
+      <div className="stats-bar-container board-toolbar mb-2">
         <div className="stats-cards">
-          <div className="stat-card-mini">
+          <div className="stat-card-mini" title="Total de tareas">
             <FiList className="stat-card-icon" style={{ color: '#0d6efd' }} />
-            <div className="stat-info">
-              <span className="stat-card-number">{stats?.total || 0}</span>
-              <span className="stat-card-label">Total</span>
-            </div>
+            <span className="stat-card-number">{stats?.total || 0}</span>
+            <span className="stat-card-label">Total</span>
           </div>
           {STATUS_COLUMNS.map(({ status, title, icon: Icon, color }) => (
-            <div className="stat-card-mini" key={status}>
+            <div className="stat-card-mini" key={status} title={title}>
               <Icon className="stat-card-icon" style={{ color }} />
-              <div className="stat-info">
-                <span className="stat-card-number">{stats?.byStatus?.[status] || 0}</span>
-                <span className="stat-card-label">{title}</span>
-              </div>
+              <span className="stat-card-number">{stats?.byStatus?.[status] || 0}</span>
+              <span className="stat-card-label">{title}</span>
             </div>
           ))}
         </div>
-        <div className="stats-actions d-flex align-items-center gap-2 flex-wrap justify-content-end">
+
+        <div className="quick-filters">
+          {QUICK_FILTERS
+            .filter(f => !(currentWorkspace?.isPersonal && (f.key === 'mine' || f.key === 'unassigned')))
+            .map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                type="button"
+                className={`quick-filter-chip ${quickFilters.includes(key) ? 'active' : ''}`}
+                onClick={() => toggleQuickFilter(key)}
+                aria-pressed={quickFilters.includes(key)}
+              >
+                <Icon size={13} />
+                {label}
+              </button>
+            ))}
+          {quickFilters.length > 0 && (
+            <button type="button" className="quick-filter-clear" onClick={() => {
+              setQuickFilters([]);
+              try { localStorage.removeItem(QUICK_FILTERS_KEY); } catch { /* sin storage */ }
+            }}>
+              <FiX size={13} /> Limpiar
+            </button>
+          )}
+        </div>
+
+        <div className="stats-actions">
           <button
             type="button"
             className="add-task-btn add-task-btn--ghost"
             onClick={handleRefresh}
             disabled={refreshing}
-            title="Refrescar dashboard"
+            title="Refrescar tablero"
           >
-            <FiCheckSquare size={16} style={{ color: 'var(--primary)' }} />
             {refreshing ? <Spinner animation="border" size="sm" /> : <FiRefreshCw size={18} />}
           </button>
           <button
@@ -822,38 +893,12 @@ const DashboardPage = () => {
               setShowTaskModal(true);
             }}
             disabled={isViewer}
-            title={isViewer ? 'Solo lectura: no podés crear tareas en este tablero' : undefined}
+            title={isViewer ? 'Solo lectura: no puedes crear tareas en este tablero' : undefined}
           >
             <FiPlus size={18} />
             <span className="add-task-text">Nueva</span>
           </button>
         </div>
-      </div>
-
-      {/* Filtros rápidos */}
-      <div className="quick-filters mb-3">
-        {QUICK_FILTERS
-          .filter(f => !(currentWorkspace?.isPersonal && (f.key === 'mine' || f.key === 'unassigned')))
-          .map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              type="button"
-              className={`quick-filter-chip ${quickFilters.includes(key) ? 'active' : ''}`}
-              onClick={() => toggleQuickFilter(key)}
-              aria-pressed={quickFilters.includes(key)}
-            >
-              <Icon size={13} />
-              {label}
-            </button>
-          ))}
-        {quickFilters.length > 0 && (
-          <button type="button" className="quick-filter-clear" onClick={() => {
-            setQuickFilters([]);
-            try { localStorage.removeItem(QUICK_FILTERS_KEY); } catch { /* sin storage */ }
-          }}>
-            <FiX size={13} /> Limpiar
-          </button>
-        )}
       </div>
 
       {/* Kanban Board con Drag & Drop */}
@@ -873,23 +918,20 @@ const DashboardPage = () => {
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="kanban-board" ref={kanbanBoardRef}>
             <Row ref={kanbanScrollRef} onScroll={handleKanbanScroll}>
-              {STATUS_COLUMNS.filter(c => c.status !== 'completed').map(({ status, title, icon, color }) => (
-                <KanbanColumn
-                  key={status}
-                  status={status}
-                  title={title}
-                  icon={icon}
-                  color={color}
-                  tasks={tasksByStatus[status]}
-                />
-              ))}
-              <KanbanColumn
-                status="completed"
-                title="Completada"
-                icon={FiCheckCircle}
-                color="#198754"
-                tasks={tasksByStatus.completed}
-                footer={<>{allCompleted.length > completedLimit ? (
+              {STATUS_COLUMNS.filter(c => c.status !== 'completed').map(({ status, title, icon, color }) => renderColumn({
+                status,
+                title,
+                icon,
+                color,
+                tasks: tasksByStatus[status]
+              }))}
+              {renderColumn({
+                status: 'completed',
+                title: 'Completada',
+                icon: FiCheckCircle,
+                color: '#198754',
+                tasks: tasksByStatus.completed,
+                footer: <>{allCompleted.length > completedLimit ? (
                   <div className="text-center py-2">
                     <div className="d-flex gap-2 justify-content-center flex-wrap">
                       {[20, 30, 40, 100].filter(n => n > completedLimit && n <= allCompleted.length).slice(0, 2).map(n => (
@@ -922,8 +964,8 @@ const DashboardPage = () => {
                     <FiArchive size={11} className="me-1" />
                     {archivedCount} completadas hace más de {archiveDays} días · <Link to="/export">ver en Reportes</Link>
                   </p>
-                )}</>}
-              />
+                )}</>
+              })}
             </Row>
             <div className="kanban-dots">
               {STATUS_COLUMNS.map(({ title: label }, i) => (
@@ -1030,6 +1072,7 @@ const DashboardPage = () => {
           show={showTaskModal}
           onHide={handleCloseTaskModal}
           task={taskToEdit}
+          onAttachmentsChange={handleAttachmentsChange}
         />
       ) : (
         <TaskForm
@@ -1038,6 +1081,7 @@ const DashboardPage = () => {
           onTaskCreated={handleTaskCreated}
           onTaskUpdated={handleTaskUpdated}
           onWarning={(msg) => setError(msg)}
+          onAttachmentsChange={handleAttachmentsChange}
           taskToEdit={taskToEdit}
           categories={categories}
           workspaceId={currentWorkspace?.id}

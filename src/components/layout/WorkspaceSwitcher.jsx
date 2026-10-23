@@ -4,21 +4,50 @@ import { FiUser, FiUsers, FiBriefcase, FiChevronDown, FiCheck, FiStar } from 're
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAuth } from '../../context/AuthContext';
 
+const ROLE_LABELS = { OWNER: 'Propietario', ADMIN: 'Administrador', MEMBER: 'Miembro', VIEWER: 'Observador' };
+
+/**
+ * Si el nombre empieza con un emoji ("📱 App Mi Axios") se separa: el emoji va en el ícono
+ * y el texto queda limpio. Si no hay emoji, se usa el ícono de persona/equipo.
+ */
+const splitEmoji = (name = '') => {
+  const first = typeof Intl !== 'undefined' && Intl.Segmenter
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(name)[Symbol.iterator]().next().value?.segment
+    : null;
+  if (first && /\p{Extended_Pictographic}/u.test(first)) {
+    return { emoji: first, label: name.slice(first.length).trim() || name };
+  }
+  return { emoji: null, label: name };
+};
+
 const WorkspaceSwitcher = () => {
   const { workspaces, currentWorkspace, switchWorkspace, pinWorkspace } = useWorkspace();
   const { user } = useAuth();
 
   if (!currentWorkspace) return null;
 
+  const current = splitEmoji(currentWorkspace.name);
+  const role = ROLE_LABELS[currentWorkspace.myRole];
+  const caption = currentWorkspace.isPersonal
+    ? 'Tablero personal'
+    : `Equipo${role ? ` · ${role}` : ''}`;
+
   return (
     <NavDropdown
       title={
-        <div className="ws-switcher-toggle">
+        <div className="ws-switcher-toggle" title={currentWorkspace.name}>
           <div className="ws-switcher-icon">
-            {currentWorkspace.isPersonal ? <FiUser size={13} /> : <FiUsers size={13} />}
+            {current.emoji
+              ? <span className="ws-switcher-emoji">{current.emoji}</span>
+              : currentWorkspace.isPersonal ? <FiUser size={16} /> : <FiUsers size={16} />}
           </div>
-          <span className="ws-switcher-name">{currentWorkspace.name}</span>
-          <FiChevronDown size={13} className="ws-switcher-chevron" />
+          <div className="ws-switcher-text">
+            <span className="ws-switcher-caption">{caption}</span>
+            <span className="ws-switcher-name">{current.label}</span>
+          </div>
+          <span className="ws-switcher-chevron">
+            <FiChevronDown size={14} />
+          </span>
         </div>
       }
       id="workspace-dropdown"

@@ -1,9 +1,10 @@
 import { Navbar as BSNavbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut, FiUser, FiSunrise, FiHome, FiFolder, FiBarChart2, FiBriefcase, FiShield, FiCheckSquare, FiActivity } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiSunrise, FiColumns, FiFolder, FiBarChart2, FiBriefcase, FiShield, FiCheckSquare, FiActivity } from 'react-icons/fi';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import GlobalSearch from './GlobalSearch';
+import NotificationBell from './NotificationBell';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
@@ -21,14 +22,16 @@ const Navbar = () => {
 
   return (
     <BSNavbar expand="lg" className="custom-navbar">
-      <BSNavbar.Brand as={Link} to="/" className="navbar-brand-custom">
+      <BSNavbar.Brand as={Link} to="/" className="navbar-brand-custom" title="Palomea Tareas">
         <img src={logo} alt="Palomea Tareas" className="brand-logo" />
-        <span className="brand-text d-none d-xl-inline">Palomea Tareas</span>
       </BSNavbar.Brand>
 
       <div className="navbar-switcher-wrapper">
         <WorkspaceSwitcher />
       </div>
+
+      {/* Fuera del menú colapsable: en celular se ve sin abrir el menú */}
+      <NotificationBell />
 
       <BSNavbar.Toggle aria-controls="basic-navbar-nav" className="navbar-toggler-custom" />
 
@@ -45,11 +48,11 @@ const Navbar = () => {
           </Nav.Link> */}
 <Nav.Link
             as={Link}
-            to="/dashboard"
-            className={`nav-link-custom ${isActive('/tasks') || isActive('/dashboard') ? 'active' : ''}`}
+            to="/tablero"
+            className={`nav-link-custom ${isActive('/tablero') ? 'active' : ''}`}
           >
-            <FiHome className="nav-icon" />
-            <span> Tareas</span>
+            <FiColumns className="nav-icon" />
+            <span> Tablero</span>
           </Nav.Link>
           <Nav.Link
             as={Link}
@@ -73,7 +76,7 @@ const Navbar = () => {
             className={`nav-link-custom ${isActive('/workspaces') ? 'active' : ''}`}
           >
             <FiBriefcase className="nav-icon" />
-            <span> Tableros</span>
+            <span> Mis tableros</span>
           </Nav.Link>
           <Nav.Link
             as={Link}
