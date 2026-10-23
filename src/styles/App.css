@@ -825,6 +825,68 @@ body {
   min-height: 84px;
 }
 
+/* Layout del modal: contenido + barra lateral de propiedades (desde 992px) */
+@media (min-width: 992px) {
+  .task-form-dialog {
+    max-width: min(1140px, calc(100vw - 4rem));
+  }
+
+  .task-form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-areas:
+      "main side"
+      "extra side";
+    grid-template-rows: auto 1fr;
+    column-gap: 1.75rem;
+  }
+
+  .task-form-main { grid-area: main; }
+  .task-form-extra { grid-area: extra; }
+
+  /* Fija mientras se baja a subtareas, archivos y comentarios */
+  .task-form-side {
+    grid-area: side;
+    align-self: start;
+    position: sticky;
+    top: 0;
+    /* En pantallas bajas la barra tiene su propio scroll (márgenes + header + footer del modal ≈ 14rem) */
+    max-height: calc(100dvh - 14rem);
+    overflow-y: auto;
+    padding: 0.25rem 0.25rem 0.25rem 1.5rem;
+    border-left: 1px solid var(--gray-200);
+  }
+
+  /* Estado en la barra: 2 por fila (la última ocupa la fila completa) */
+  .task-form-side .status-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .task-form-side .status-selector .status-option:last-child {
+    grid-column: span 2;
+  }
+
+  .task-form-side .task-form-segmented .status-option,
+  .task-form-side .task-form-segmented .priority-option {
+    min-width: 0;
+  }
+}
+
+/* Tablet/celular: una columna; las propiedades van después de la descripción */
+@media (max-width: 991.98px) {
+  .task-form-side {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Tablet: Bootstrap deja los modales en 500px por debajo de 992px; aprovechar el ancho */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .task-form-dialog {
+    max-width: min(760px, calc(100vw - 2rem));
+  }
+}
+
 /* Estado y prioridad: una sola fila de opciones (en celular se acomodan en varias) */
 .task-form-segmented {
   flex-wrap: wrap;
