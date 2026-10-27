@@ -1,6 +1,6 @@
 import { NavDropdown, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FiUser, FiUsers, FiBriefcase, FiChevronDown, FiCheck, FiStar } from 'react-icons/fi';
+import { FiUser, FiUsers, FiBriefcase, FiChevronDown, FiCheck, FiStar, FiFolder, FiSettings, FiActivity } from 'react-icons/fi';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -27,6 +27,7 @@ const WorkspaceSwitcher = () => {
   if (!currentWorkspace) return null;
 
   const current = splitEmoji(currentWorkspace.name);
+  const isManager = ['OWNER', 'ADMIN'].includes(currentWorkspace.myRole);
   const role = ROLE_LABELS[currentWorkspace.myRole];
   const caption = currentWorkspace.isPersonal
     ? 'Tablero personal'
@@ -89,10 +90,29 @@ const WorkspaceSwitcher = () => {
           </NavDropdown.Item>
         );
       })}
+      {/* Configuración del tablero actual (antes "Categorías" estaba en el menú principal) */}
+      <NavDropdown.Divider />
+      <div className="ws-switcher-header">Este tablero</div>
+      <NavDropdown.Item as={Link} to="/categories" className="ws-switcher-manage ws-switcher-action">
+        <FiFolder size={14} className="me-2" />
+        Categorías
+      </NavDropdown.Item>
+      {!currentWorkspace.isPersonal && (
+        <NavDropdown.Item as={Link} to={`/workspaces/${currentWorkspace.id}`} className="ws-switcher-manage ws-switcher-action">
+          <FiSettings size={14} className="me-2" />
+          Miembros y ajustes
+        </NavDropdown.Item>
+      )}
+      {!currentWorkspace.isPersonal && isManager && (
+        <NavDropdown.Item as={Link} to={`/workspaces/${currentWorkspace.id}/actividad`} className="ws-switcher-manage ws-switcher-action">
+          <FiActivity size={14} className="me-2" />
+          Actividad
+        </NavDropdown.Item>
+      )}
       <NavDropdown.Divider />
       <NavDropdown.Item as={Link} to="/workspaces" className="ws-switcher-manage">
         <FiBriefcase size={14} className="me-2" />
-        Gestionar Tableros
+        Gestionar tableros
       </NavDropdown.Item>
     </NavDropdown>
   );

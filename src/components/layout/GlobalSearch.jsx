@@ -6,6 +6,7 @@ import searchService from '../../services/searchService';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { formatDate } from '../../utils/dateUtils';
 import { formatTaskKey, parseTaskKey } from '../../utils/taskKey';
+import { OPEN_SEARCH_EVENT } from './navItems';
 import './GlobalSearch.css';
 
 const STATUS_LABELS = {
@@ -41,8 +42,13 @@ const GlobalSearch = () => {
         setShow(true);
       }
     };
+    const onOpen = () => setShow(true);
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener(OPEN_SEARCH_EVENT, onOpen);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener(OPEN_SEARCH_EVENT, onOpen);
+    };
   }, []);
 
   // Buscar con debounce; cancelar la petición anterior si siguen escribiendo

@@ -1,8 +1,9 @@
 import Navbar from './Navbar';
+import MobileTabBar from './MobileTabBar';
 
 const MainLayout = ({ children }) => {
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className="d-flex flex-column min-vh-100 app-shell">
       <Navbar />
       <main className="flex-grow-1 w-100">
         {children}
@@ -14,6 +15,7 @@ const MainLayout = ({ children }) => {
           </small>
         </div>
       </footer>
+      <MobileTabBar />
     </div>
   );
 };
